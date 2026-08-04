@@ -2,20 +2,28 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Plus, Star, Leaf } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ShoppingCart, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, cn } from "@/lib/utils";
 import { useCart } from "@/features/cart/hooks/use-cart";
 import type { MenuItem } from "@/types/menu.types";
 
-// Menu listing card: shows item info and an "add to cart" button that posts straight to the guest cart.
+// Menu listing card: image, name, veg/non-veg chip, price, and Add to Cart / Buy Now actions.
 export function MenuItemCard({ item }: { item: MenuItem }) {
+  const router = useRouter();
   const { addItem } = useCart();
 
+  function handleBuyNow() {
+    // Same Buy Now Flow as the item detail page — skips the cart, goes straight to checkout.
+    router.push(`/checkout?buyNowItemId=${item.id}&quantity=1`);
+  }
+
   return (
-    <div className="bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-xl transition-all group overflow-hidden">
-      <Link href={`/menu/${item.id}`} className="block h-56 overflow-hidden relative bg-surface-container">
+    <div className="flex flex-col h-full bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-xl transition-all group overflow-hidden">
+      {/* aspect-square keeps the image a true 1:1 ratio at every card width, object-cover avoids stretching */}
+      <Link href={`/menu/${item.id}`} className="block relative aspect-square w-full overflow-hidden bg-surface-container">
         {item.imageUrl ? (
           <Image
             src={item.imageUrl}
@@ -34,42 +42,68 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
         )}
       </Link>
 
-      <div className="p-stack-md">
-        <div className="flex justify-between items-start gap-2 mb-2">
+      <div className="p-stack-md flex flex-col flex-1">
+        <div className="flex justify-between items-start gap-2 mb-1">
           <Link href={`/menu/${item.id}`}>
             <h3 className="font-headline-md text-headline-md hover:text-primary transition-colors">
               {item.name}
             </h3>
           </Link>
-          {item.isVeg && <Leaf className="w-5 h-5 text-green-600 shrink-0" aria-label="Vegetarian" />}
+          <DietChip isVeg={item.isVeg} />
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-3">
-          {item.isBestSeller && (
-            <Badge>
-              <Star className="w-3 h-3" /> Best Seller
-            </Badge>
-          )}
-          {item.isTodaysSpecial && <Badge>Today&apos;s Special</Badge>}
-        </div>
+        {/* Price moved up near the name, Meesho-style — the buttons row owns the bottom of the card */}
+        <span className="text-primary font-bold text-headline-md mb-2">{formatPrice(item.price)}</span>
 
-        {item.description && (
-          <p className="text-secondary text-body-md mb-4 line-clamp-2">{item.description}</p>
+        {(item.isBestSeller || item.isTodaysSpecial) && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {item.isBestSeller && (
+              <Badge>
+                <Star className="w-3 h-3" /> Best Seller
+              </Badge>
+            )}
+            {item.isTodaysSpecial && <Badge>Today&apos;s Special</Badge>}
+          </div>
         )}
 
-        <div className="flex justify-between items-center">
-          {/* Live price shown here; checkout re-prices using the current value, not this snapshot */}
-          <span className="text-primary font-bold text-headline-md">{formatPrice(item.price)}</span>
+        {item.description && (
+          <p className="text-secondary text-body-md mb-3 line-clamp-2">{item.description}</p>
+        )}
+
+        {/* mt-auto pins the action row to the bottom even when descriptions vary in length */}
+        <div className="mt-auto pt-1 flex gap-2">
           <button
             onClick={() => addItem.mutate({ menuItemId: item.id, quantity: 1 })}
             disabled={!item.isAvailable || addItem.isPending}
-            className="bg-primary-container text-on-primary-container p-3 rounded-full flex items-center justify-center hover:scale-110 transition-all disabled:opacity-40 disabled:pointer-events-none"
-            aria-label={`Add ${item.name} to cart`}
+            className="flex-1 flex items-center justify-center gap-1.5 border border-primary text-primary rounded-full py-2 text-label-sm font-label-sm hover:bg-primary-fixed/30 transition-colors disabled:opacity-40 disabled:pointer-events-none"
           >
-            {addItem.isPending ? <Spinner className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+            {addItem.isPending ? <Spinner className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
+            Add to Cart
+          </button>
+          <button
+            onClick={handleBuyNow}
+            disabled={!item.isAvailable}
+            className="flex-1 flex items-center justify-center bg-primary text-on-primary rounded-full py-2 text-label-sm font-label-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:pointer-events-none"
+          >
+            Buy Now
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+// Small dietary indicator chip — green for veg, red for non-veg (colors follow the common food-app convention).
+function DietChip({ isVeg }: { isVeg: boolean }) {
+  return (
+    <span
+      className={cn(
+        "shrink-0 inline-flex items-center gap-1 rounded-md border px-2 py-0.5 mt-1 text-[10px] font-label-sm uppercase tracking-wide",
+        isVeg ? "border-green-600 text-green-700 bg-green-50" : "border-red-600 text-red-700 bg-red-50"
+      )}
+    >
+      <span className={cn("w-1.5 h-1.5 rounded-full", isVeg ? "bg-green-600" : "bg-red-600")} />
+      {isVeg ? "Veg" : "Non-Veg"}
+    </span>
   );
 }

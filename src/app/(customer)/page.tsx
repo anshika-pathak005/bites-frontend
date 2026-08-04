@@ -1,5 +1,5 @@
 import { HeroSection } from "./_components/hero-section";
-import { PopularDishesSection } from "./_components/popular-dishes-section";
+import { CategoriesSection } from "./_components/categories-section";
 import { FeaturesSection } from "./_components/features-section";
 import { CtaBanner } from "./_components/cta-banner";
 import { TestimonialsSection } from "./_components/testimonials-section";
@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-      <PopularDishesSection />
+      <CategoriesSection />
       <FeaturesSection />
       <CtaBanner />
       <TestimonialsSection />

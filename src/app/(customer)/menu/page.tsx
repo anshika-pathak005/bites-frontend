@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -12,9 +13,30 @@ import type { MenuItemFilters } from "@/types/menu.types";
 
 const PAGE_SIZE = 12;
 
-// Full menu browsing page — search, category tabs, dietary/special filters, and paginated results.
+// Next.js requires useSearchParams() to sit inside a Suspense boundary — the
+// actual page content lives in MenuPageContent below, and this default
+// export just supplies that boundary around it.
 export default function MenuPage() {
-  const [activeCategoryId, setActiveCategoryId] = useState<string | undefined>(undefined);
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center py-24">
+          <Spinner className="w-8 h-8" />
+        </div>
+      }
+    >
+      <MenuPageContent />
+    </Suspense>
+  );
+}
+
+// Full menu browsing page — search, category tabs, dietary/special filters, and paginated results.
+function MenuPageContent() {
+  const searchParams = useSearchParams();
+  // Pre-select the category from a `?category=<id>` link (e.g. the homepage category cards)
+  const [activeCategoryId, setActiveCategoryId] = useState<string | undefined>(
+    () => searchParams.get("category") ?? undefined
+  );
   const [search, setSearch] = useState("");
   const [vegOnly, setVegOnly] = useState(false);
   const [bestSellerOnly, setBestSellerOnly] = useState(false);
@@ -22,6 +44,14 @@ export default function MenuPage() {
   const [page, setPage] = useState(0);
 
   const { data: categories } = useCategories();
+
+  // Re-syncs the selected category if the user (re-)arrives via a `?category=`
+  // link while this page is already mounted — client-side nav doesn't remount it.
+  useEffect(() => {
+    setActiveCategoryId(searchParams.get("category") ?? undefined);
+    setPage(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Combined filter object sent to the menu items query
   const filters: MenuItemFilters = {
@@ -112,6 +142,7 @@ export default function MenuPage() {
 
       {data && data.items.length > 0 && (
         <>
+          {/* grid-template-columns steps up from 1 col on small screens to 3 on desktop */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
             {data.items.map((item) => (
               <MenuItemCard key={item.id} item={item} />

@@ -62,12 +62,22 @@ function TrackOrderContent() {
     <div className="px-margin-mobile md:px-margin-desktop max-w-2xl mx-auto py-stack-lg">
       <div className="text-center mb-stack-lg">
         <h1 className="font-headline-lg text-headline-lg">Track Your Order</h1>
-        <p className="text-secondary mt-2">Look up your order using its Order ID or your phone number.</p>
+        <p className="text-secondary mt-2">
+          Look up your order using its Order ID or your phone number.
+        </p>
       </div>
 
       <div className="flex justify-center gap-3 mb-stack-md">
-        <ModeTab label="Order ID" active={mode === "orderNumber"} onClick={() => setMode("orderNumber")} />
-        <ModeTab label="Phone Number" active={mode === "phone"} onClick={() => setMode("phone")} />
+        <ModeTab
+          label="Order ID"
+          active={mode === "orderNumber"}
+          onClick={() => setMode("orderNumber")}
+        />
+        <ModeTab
+          label="Phone Number"
+          active={mode === "phone"}
+          onClick={() => setMode("phone")}
+        />
       </div>
 
       <form onSubmit={handleSubmit} className="flex gap-3 mb-stack-lg">
@@ -75,7 +85,9 @@ function TrackOrderContent() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
           <Input
             className="pl-11"
-            placeholder={mode === "orderNumber" ? "e.g. ORD-7K4QX9P2" : "e.g. 9876543210"}
+            placeholder={
+              mode === "orderNumber" ? "e.g. ORD-7K4QX9P2" : "e.g. 9876543210"
+            }
             value={value}
             onChange={(e) => setValue(e.target.value)}
           />
@@ -85,7 +97,11 @@ function TrackOrderContent() {
         </Button>
       </form>
 
-      {isError && <p className="text-center text-secondary">Something went wrong. Please try again.</p>}
+      {isError && (
+        <p className="text-center text-secondary">
+          Something went wrong. Please try again.
+        </p>
+      )}
 
       {orders && orders.length === 0 && (
         <div className="flex flex-col items-center gap-3 py-12 text-center">
@@ -96,13 +112,22 @@ function TrackOrderContent() {
 
       <div className="space-y-6">
         {orders?.map((order) => (
-          <div key={order.id} className="bg-surface-container-lowest rounded-2xl shadow-sm p-6">
+          <div
+            key={order.id}
+            className="bg-surface-container-lowest rounded-2xl shadow-sm p-6"
+          >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <p className="text-xs text-secondary uppercase tracking-widest">Order ID</p>
-                <p className="font-headline-md text-headline-md text-primary">{order.orderNumber}</p>
+                <p className="text-xs text-secondary uppercase tracking-widest">
+                  Order ID
+                </p>
+                <p className="font-headline-md text-headline-md text-primary">
+                  {order.orderNumber}
+                </p>
               </div>
-              <span className="text-headline-md font-headline-md">{formatPrice(order.grandTotal)}</span>
+              <span className="text-headline-md font-headline-md">
+                {formatPrice(order.grandTotal)}
+              </span>
             </div>
 
             {/* Cancelled orders skip the progress tracker entirely */}
@@ -117,19 +142,24 @@ function TrackOrderContent() {
                   const currentIndex = PROGRESS_STEPS.indexOf(order.status);
                   const isDone = index <= currentIndex;
                   return (
-                    <div key={step} className="flex-1 flex flex-col items-center relative">
+                    <div
+                      key={step}
+                      className="flex-1 flex flex-col items-center relative"
+                    >
                       {index > 0 && (
                         <div
                           className={cn(
                             "absolute top-3 right-1/2 w-full h-0.5",
-                            isDone ? "bg-primary" : "bg-outline-variant"
+                            isDone ? "bg-primary" : "bg-outline-variant",
                           )}
                         />
                       )}
                       <div
                         className={cn(
                           "w-6 h-6 rounded-full z-10 border-2",
-                          isDone ? "bg-primary border-primary" : "bg-surface-container-lowest border-outline-variant"
+                          isDone
+                            ? "bg-primary border-primary"
+                            : "bg-surface-container-lowest border-outline-variant",
                         )}
                       />
                       <span className="text-[10px] text-center mt-2 text-secondary max-w-[70px]">
@@ -141,11 +171,15 @@ function TrackOrderContent() {
               </div>
             )}
 
-            <div className="border-t border-outline-variant/30 pt-4 space-y-1">
+            <div className="border-t border-outline-variant/30 pt-4 space-y-2">
               {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between text-sm text-secondary">
-                  <span>{item.itemName} × {item.quantity}</span>
-                  <span>{formatPrice(item.subtotal)}</span>
+                <div key={item.id} className="text-sm text-secondary">
+                    <span>
+                      {item.itemName} × {item.quantity}
+                    </span>
+                  <div className="text-left mt-3">
+                    {formatPrice(item.subtotal)} <span>+ delivery charge</span>
+                  </div>
                 </div>
               ))}
             </div>
