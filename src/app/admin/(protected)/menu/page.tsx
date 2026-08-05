@@ -3,20 +3,29 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Modal } from "@/components/ui/modal";
+import { ImageUploadField } from "@/components/ui/image-upload-field";
 import { formatPrice, cn } from "@/lib/utils";
 import { useAdminMenuItems, useMenuItemMutations } from "@/features/admin/menu-management/hooks/use-admin-menu-items";
 import { useAdminCategories } from "@/features/admin/category-management/hooks/use-admin-categories";
 import type { MenuItem } from "@/types/menu.types";
 import type { MenuItemPayload } from "@/features/admin/menu-management/api/admin-menu-items.api";
 
+// price is widened to allow "" here so the box can be genuinely empty while
+// typing/creating — MenuItemPayload itself always needs a real number,
+// converted back at submit time.
+type MenuItemFormState = Omit<MenuItemPayload, "price"> & { price: number | "" };
+
 // Default values for the create form (also reused as a reset for edit -> create).
-const EMPTY_FORM: MenuItemPayload = {
+const EMPTY_FORM: MenuItemFormState = {
   categoryId: "",
   name: "",
   description: "",
-  price: 0,
+  price: "",
   imageUrl: "",
   isVeg: true,
   isAvailable: true,
@@ -35,7 +44,12 @@ export default function AdminMenuPage() {
   // null editingId means the form (if open) is in "create" mode.
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<MenuItemPayload>(EMPTY_FORM);
+  const [form, setForm] = useState<MenuItemFormState>(EMPTY_FORM);
+  // Item pending a delete confirmation; null means the dialog is closed.
+  const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null);
+  // True while the image field's upload is in flight — blocks Save so the
+  // form can't submit before the hosted URL is actually ready.
+  const [isImageUploading, setIsImageUploading] = useState(false);
 
   // Opens the form blank, ready to create a brand new menu item.
   function startCreate() {
@@ -64,10 +78,14 @@ export default function AdminMenuPage() {
   // Routes the form submission to create or update depending on editingId, then closes the form.
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Radix's Select isn't a native <select>, so the browser's built-in
+    // "required" validation doesn't cover it — check it manually here.
+    if (!form.categoryId) return;
+    const payload: MenuItemPayload = { ...form, price: form.price === "" ? 0 : form.price };
     if (editingId) {
-      update.mutate({ id: editingId, payload: form }, { onSuccess: () => setShowForm(false) });
+      update.mutate({ id: editingId, payload }, { onSuccess: () => setShowForm(false) });
     } else {
-      create.mutate(form, { onSuccess: () => setShowForm(false) });
+      create.mutate(payload, { onSuccess: () => setShowForm(false) });
     }
   }
 
@@ -76,7 +94,7 @@ export default function AdminMenuPage() {
       {/* Page header with the "New Item" action */}
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h1 className="text-headline-lg font-headline-lg">Menu Management</h1>
+          <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Menu Management</h1>
           <p className="text-secondary mt-1">Add, edit, and manage stock for your dishes.</p>
         </div>
         <Button onClick={startCreate}>
@@ -84,56 +102,71 @@ export default function AdminMenuPage() {
         </Button>
       </div>
 
-      {/* Create/edit form, only rendered while showForm is true */}
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface-container-lowest rounded-2xl shadow-sm p-6 space-y-4 max-w-xl">
-          <h3 className="font-headline-md text-headline-md">{editingId ? "Edit Menu Item" : "New Menu Item"}</h3>
+      {/* Create/edit form, shown as a popup */}
+      <Modal open={showForm} title={editingId ? "Edit Menu Item" : "New Menu Item"} onClose={() => setShowForm(false)}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="font-label-md text-label-sm block mb-2">Category</label>
+            <Select value={form.categoryId} onValueChange={(value) => setForm({ ...form, categoryId: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories?.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <select
-            value={form.categoryId}
-            onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-            required
-            className="w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 text-sm outline-none focus:border-primary focus:border-2"
-          >
-            <option value="">Select category</option>
-            {categories?.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-
-          <Input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          <Input placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-          <Input
-            type="number"
-            step="0.01"
-            placeholder="Price"
-            value={form.price}
-            onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-            required
-          />
-          <Input placeholder="Image URL" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} />
+          <div>
+            <label className="font-label-md text-label-sm block mb-2">Name</label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          </div>
+          <div>
+            <label className="font-label-md text-label-sm block mb-2">Description</label>
+            <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          </div>
+          <div>
+            <label className="font-label-md text-label-sm block mb-2">Price</label>
+            <Input
+              type="number"
+              step="0.01"
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value === "" ? "" : Number(e.target.value) })}
+              required
+            />
+          </div>
+          <div>
+            <label className="font-label-md text-label-sm block mb-2">Item Image</label>
+            <ImageUploadField
+              value={form.imageUrl ?? ""}
+              onChange={(url) => setForm({ ...form, imageUrl: url })}
+              onUploadingChange={setIsImageUploading}
+            />
+          </div>
 
           <div className="flex flex-wrap gap-4 text-sm">
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={form.isVeg} onChange={(e) => setForm({ ...form, isVeg: e.target.checked })} /> Veg
+              <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isVeg} onChange={(e) => setForm({ ...form, isVeg: e.target.checked })} /> Veg
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={form.isAvailable} onChange={(e) => setForm({ ...form, isAvailable: e.target.checked })} /> In Stock
+              <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isAvailable} onChange={(e) => setForm({ ...form, isAvailable: e.target.checked })} /> In Stock
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={form.isBestSeller} onChange={(e) => setForm({ ...form, isBestSeller: e.target.checked })} /> Best Seller
+              <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isBestSeller} onChange={(e) => setForm({ ...form, isBestSeller: e.target.checked })} /> Best Seller
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={form.isTodaysSpecial} onChange={(e) => setForm({ ...form, isTodaysSpecial: e.target.checked })} /> Today&apos;s Special
+              <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isTodaysSpecial} onChange={(e) => setForm({ ...form, isTodaysSpecial: e.target.checked })} /> Today&apos;s Special
             </label>
           </div>
 
-          <div className="flex gap-3">
-            <Button type="submit" disabled={create.isPending || update.isPending}>Save</Button>
+          <div className="flex flex-wrap gap-3">
+            <Button type="submit" disabled={create.isPending || update.isPending || isImageUploading}>Save</Button>
             <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
           </div>
         </form>
-      )}
+      </Modal>
 
       {/* Search box; typing resets pagination back to page 0 since results change */}
       <div className="relative max-w-xs">
@@ -151,6 +184,7 @@ export default function AdminMenuPage() {
         {isLoading ? (
           <div className="flex justify-center py-16"><Spinner className="w-8 h-8" /></div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-secondary border-b border-outline-variant/30">
@@ -182,7 +216,7 @@ export default function AdminMenuPage() {
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => remove.mutate(item.id)}
+                      onClick={() => setDeleteTarget(item)}
                       className="p-2 rounded-lg hover:bg-surface-variant text-error"
                       aria-label="Delete"
                     >
@@ -193,6 +227,7 @@ export default function AdminMenuPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
         {/* Pagination controls, only shown when there's more than one page */}
@@ -204,6 +239,16 @@ export default function AdminMenuPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete menu item?"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        isLoading={remove.isPending}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && remove.mutate(deleteTarget.id, { onSuccess: () => setDeleteTarget(null) })}
+      />
     </div>
   );
 }

@@ -32,10 +32,12 @@ export default function ProtectedAdminLayout({ children }: { children: React.Rea
   }
 
   // Authenticated: render the sidebar shell with the actual page content.
+  // flex-col on mobile stacks the top bar above content; md:flex-row puts
+  // the full sidebar beside it on desktop, matching AdminSidebar's own breakpoint.
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row min-h-screen">
       <AdminSidebar />
-      <div className="flex-grow min-w-0 px-6 md:px-10 py-8">{children}</div>
+      <div className="flex-grow min-w-0 px-4 sm:px-6 md:px-10 py-6 md:py-8">{children}</div>
     </div>
   );
 }

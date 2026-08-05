@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { OrderStatusBadge } from "@/components/ui/order-status-badge";
 import { formatPrice } from "@/lib/utils";
@@ -17,12 +18,14 @@ const ALL_STATUSES: OrderStatus[] = ["PENDING", "ACCEPTED", "PREPARING", "OUT_FO
 
 // Admin page listing all orders with search, status filter, pagination, and inline status updates.
 export default function AdminOrdersPage() {
-  const [status, setStatus] = useState<OrderStatus | "">("");
+  // "ALL" is a sentinel meaning no status filter — Radix's Select.Item can't
+  // take an empty-string value (it's reserved internally for "no selection").
+  const [status, setStatus] = useState<OrderStatus | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
   const { data, isLoading, isError } = useAdminOrders({
-    status: status || undefined,
+    status: status !== "ALL" ? status : undefined,
     search: search || undefined,
     page,
     pageSize: 15,
@@ -32,7 +35,7 @@ export default function AdminOrdersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-headline-lg font-headline-lg">Orders</h1>
+        <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Orders</h1>
         <p className="text-secondary mt-1">Review, accept, and track every order.</p>
       </div>
 
@@ -50,19 +53,23 @@ export default function AdminOrdersPage() {
             }}
           />
         </div>
-        <select
+        <Select
           value={status}
-          onChange={(e) => {
-            setStatus(e.target.value as OrderStatus | "");
+          onValueChange={(value) => {
+            setStatus(value as OrderStatus | "ALL");
             setPage(0);
           }}
-          className="rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 text-sm outline-none focus:border-primary focus:border-2"
         >
-          <option value="">All statuses</option>
-          {ALL_STATUSES.map((s) => (
-            <option key={s} value={s}>{ORDER_STATUS_LABELS[s]}</option>
-          ))}
-        </select>
+          <SelectTrigger className="w-auto text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All statuses</SelectItem>
+            {ALL_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>{ORDER_STATUS_LABELS[s]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
@@ -115,21 +122,23 @@ export default function AdminOrdersPage() {
                       <td className="py-3 px-4">
                         {/* Dropdown only lists statuses reachable from the current one; terminal orders show "Final" instead */}
                         {nextOptions.length > 0 ? (
-                          <select
-                            defaultValue=""
+                          // key={order.status} forces a fresh, unselected instance whenever the
+                          // status actually changes — otherwise it'd keep showing the just-picked
+                          // label instead of resetting to the "Change status..." placeholder.
+                          <Select
+                            key={order.status}
                             disabled={updateStatus.isPending}
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                updateStatus.mutate({ id: order.id, status: e.target.value as OrderStatus });
-                              }
-                            }}
-                            className="rounded-lg border border-outline-variant bg-surface-container-lowest px-2 py-1.5 text-xs outline-none"
+                            onValueChange={(value) => updateStatus.mutate({ id: order.id, status: value as OrderStatus })}
                           >
-                            <option value="">Change status...</option>
-                            {nextOptions.map((s) => (
-                              <option key={s} value={s}>{ORDER_STATUS_LABELS[s]}</option>
-                            ))}
-                          </select>
+                            <SelectTrigger className="w-auto py-1.5 pr-8 text-xs">
+                              <SelectValue placeholder="Change status..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {nextOptions.map((s) => (
+                                <SelectItem key={s} value={s}>{ORDER_STATUS_LABELS[s]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         ) : (
                           <span className="text-xs text-secondary">Final</span>
                         )}

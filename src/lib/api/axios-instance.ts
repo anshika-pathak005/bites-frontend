@@ -6,9 +6,9 @@ const ACCESS_TOKEN_KEY = "bites_admin_access_token";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // No hardcoded Content-Type — axios already sets "application/json" on its
+  // own for plain object bodies. Fixing it here would also force JSON onto
+  // FormData uploads, stripping the multipart boundary the backend needs.
   // The admin refresh token now lives in an HttpOnly cookie set by the
   // backend — withCredentials makes the browser send/accept it on every
   // request instead of silently dropping it.

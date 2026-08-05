@@ -45,6 +45,21 @@ export default function ContactPage() {
             <Input name="name" placeholder="Your name" required />
             <Input name="email" type="email" placeholder="Your email" required />
           </div>
+          {/* +91 is fixed since the restaurant only takes Indian numbers — caller just types the 10-digit number */}
+          <div className="flex">
+            <span className="inline-flex items-center px-4 rounded-l-lg border border-r-0 border-outline-variant bg-surface-container-high text-on-surface-variant text-body-md font-body-md">
+              +91
+            </span>
+            <Input
+              name="phone"
+              type="tel"
+              placeholder="Phone number"
+              pattern="[0-9]{10}"
+              title="10-digit phone number"
+              required
+              className="rounded-l-none"
+            />
+          </div>
           <Input name="subject" placeholder="Subject" required />
           <Textarea name="message" placeholder="Your message" required />
           <Button type="submit" size="lg" disabled={isSubmitting}>

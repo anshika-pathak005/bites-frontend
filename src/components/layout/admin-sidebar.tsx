@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -12,6 +13,8 @@ import {
   Settings,
   UserCircle,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants/routes";
@@ -29,20 +32,68 @@ const NAV_ITEMS = [
   { label: "Profile", href: ROUTES.admin.profile, icon: UserCircle },
 ];
 
-// Fixed left-hand nav for all /admin pages: branding, links, and account/logout.
+// Nav for all /admin pages: a fixed left sidebar on desktop, a hamburger +
+// slide-in drawer on small screens (both share the same content below).
 export function AdminSidebar() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      {/* Mobile top bar — hidden on desktop, where the full sidebar is always visible */}
+      <div className="md:hidden h-16 flex items-center justify-between px-4 border-b border-outline-variant/30 bg-surface-container-lowest sticky top-0 z-30">
+        <Link href={ROUTES.admin.dashboard} className="text-headline-md font-headline-md text-primary">
+          Bites <span className="text-on-surface-variant text-sm font-body-md">Admin</span>
+        </Link>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded-lg hover:bg-surface-variant transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Backdrop + slide-in drawer, only mounted while open */}
+      {isOpen && (
+        <div className="md:hidden fixed inset-0 z-40 flex justify-end">
+          <div className="absolute inset-0 bg-inverse-surface/60" onClick={() => setIsOpen(false)} />
+          <aside className="relative w-64 h-full bg-surface-container-lowest border-l border-outline-variant/30 flex flex-col">
+            <div className="h-16 flex items-center justify-between px-4 border-b border-outline-variant/30">
+              <span className="text-headline-md font-headline-md text-primary">Bites Admin</span>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 rounded-lg hover:bg-surface-variant transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <SidebarContent onNavigate={() => setIsOpen(false)} />
+          </aside>
+        </div>
+      )}
+
+      {/* Desktop sidebar — hidden on small screens, replaced by the top bar + drawer above */}
+      <aside className="hidden md:flex md:w-64 shrink-0 bg-surface-container-lowest border-r border-outline-variant/30 h-screen sticky top-0 flex-col">
+        <div className="h-20 flex items-center px-6 border-b border-outline-variant/30">
+          <Link href={ROUTES.admin.dashboard} className="text-headline-md font-headline-md text-primary">
+            Bites <span className="text-on-surface-variant text-sm font-body-md">Admin</span>
+          </Link>
+        </div>
+        <SidebarContent />
+      </aside>
+    </>
+  );
+}
+
+// Nav links + account/logout footer — shared between the desktop sidebar and mobile drawer.
+function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { admin, logout } = useAdminAuth();
 
   return (
-    <aside className="w-64 shrink-0 bg-surface-container-lowest border-r border-outline-variant/30 h-screen sticky top-0 flex flex-col">
-      <div className="h-20 flex items-center px-6 border-b border-outline-variant/30">
-        <Link href={ROUTES.admin.dashboard} className="text-headline-md font-headline-md text-primary">
-          Bites <span className="text-on-surface-variant text-sm font-body-md">Admin</span>
-        </Link>
-      </div>
-
-      <nav className="flex-grow py-4 px-3 space-y-1">
+    <>
+      <nav className="flex-grow py-4 px-3 space-y-1 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           // Highlight the link whose route prefixes the current path (so nested pages still light up).
           const isActive = pathname.startsWith(item.href);
@@ -51,6 +102,7 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-lg font-label-md text-label-md transition-colors",
                 isActive ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-variant"
@@ -79,6 +131,6 @@ export function AdminSidebar() {
           Log Out
         </button>
       </div>
-    </aside>
+    </>
   );
 }

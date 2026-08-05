@@ -14,7 +14,7 @@ export default function AdminCustomersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-headline-lg font-headline-lg">Customers</h1>
+        <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Customers</h1>
         <p className="text-secondary mt-1">Everyone who has ordered from Bites.</p>
       </div>
 
@@ -25,6 +25,7 @@ export default function AdminCustomersPage() {
         ) : customers && customers.length === 0 ? (
           <p className="text-center text-secondary py-16">No customers yet.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-secondary border-b border-outline-variant/30">
@@ -45,6 +46,7 @@ export default function AdminCustomersPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

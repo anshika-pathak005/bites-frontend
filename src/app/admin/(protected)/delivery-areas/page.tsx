@@ -5,6 +5,8 @@ import { Plus, Pencil, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Modal } from "@/components/ui/modal";
 import { formatPrice } from "@/lib/utils";
 import {
   useAdminDeliveryAreas,
@@ -13,8 +15,13 @@ import {
 import type { DeliveryArea } from "@/types/admin.types";
 import type { DeliveryAreaPayload } from "@/features/admin/delivery-areas/api/admin-delivery-areas.api";
 
+// deliveryCharge is widened to allow "" here so the box can be genuinely
+// empty while typing/creating — DeliveryAreaPayload itself always needs a
+// real number, converted back at submit time.
+type DeliveryAreaFormState = Omit<DeliveryAreaPayload, "deliveryCharge"> & { deliveryCharge: number | "" };
+
 // Default values for the create form (also reused as a reset for edit -> create).
-const EMPTY_FORM: DeliveryAreaPayload = { name: "", deliveryCharge: 0, isActive: true };
+const EMPTY_FORM: DeliveryAreaFormState = { name: "", deliveryCharge: "", isActive: true };
 
 // Admin page for creating, editing, and deactivating serviceable delivery areas.
 export default function AdminDeliveryAreasPage() {
@@ -24,7 +31,9 @@ export default function AdminDeliveryAreasPage() {
   // null editingId means the form (if open) is in "create" mode.
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<DeliveryAreaPayload>(EMPTY_FORM);
+  const [form, setForm] = useState<DeliveryAreaFormState>(EMPTY_FORM);
+  // Area pending a deactivate confirmation; null means the dialog is closed.
+  const [deactivateTarget, setDeactivateTarget] = useState<DeliveryArea | null>(null);
 
   // Opens the form blank, ready to create a brand new delivery area.
   function startCreate() {
@@ -43,19 +52,20 @@ export default function AdminDeliveryAreasPage() {
   // Routes the form submission to create or update depending on editingId, then closes the form.
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const payload: DeliveryAreaPayload = { ...form, deliveryCharge: form.deliveryCharge === "" ? 0 : form.deliveryCharge };
     if (editingId) {
-      update.mutate({ id: editingId, payload: form }, { onSuccess: () => setShowForm(false) });
+      update.mutate({ id: editingId, payload }, { onSuccess: () => setShowForm(false) });
     } else {
-      create.mutate(form, { onSuccess: () => setShowForm(false) });
+      create.mutate(payload, { onSuccess: () => setShowForm(false) });
     }
   }
 
   return (
     <div className="space-y-6">
       {/* Page header with the "New Area" action */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
-          <h1 className="text-headline-lg font-headline-lg">Delivery Areas</h1>
+          <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Delivery Areas</h1>
           <p className="text-secondary mt-1">Control where you deliver and how much it costs.</p>
         </div>
         <Button onClick={startCreate}>
@@ -63,35 +73,40 @@ export default function AdminDeliveryAreasPage() {
         </Button>
       </div>
 
-      {/* Create/edit form, only rendered while showForm is true */}
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface-container-lowest rounded-2xl shadow-sm p-6 space-y-4 max-w-lg">
-          <h3 className="font-headline-md text-headline-md">{editingId ? "Edit Delivery Area" : "New Delivery Area"}</h3>
-          <Input placeholder="Area name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          <Input
-            type="number"
-            step="0.01"
-            placeholder="Delivery charge"
-            value={form.deliveryCharge}
-            onChange={(e) => setForm({ ...form, deliveryCharge: Number(e.target.value) })}
-            required
-          />
+      {/* Create/edit form, shown as a popup */}
+      <Modal open={showForm} title={editingId ? "Edit Delivery Area" : "New Delivery Area"} onClose={() => setShowForm(false)}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="font-label-md text-label-sm block mb-2">Area Name</label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          </div>
+          <div>
+            <label className="font-label-md text-label-sm block mb-2">Delivery Charge</label>
+            <Input
+              type="number"
+              step="0.01"
+              value={form.deliveryCharge}
+              onChange={(e) => setForm({ ...form, deliveryCharge: e.target.value === "" ? "" : Number(e.target.value) })}
+              required
+            />
+          </div>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
+            <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
             Active (serviceable)
           </label>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Button type="submit" disabled={create.isPending || update.isPending}>Save</Button>
             <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
           </div>
         </form>
-      )}
+      </Modal>
 
       {/* Delivery area list table */}
       <div className="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center py-16"><Spinner className="w-8 h-8" /></div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-secondary border-b border-outline-variant/30">
@@ -118,7 +133,7 @@ export default function AdminDeliveryAreasPage() {
                     {/* Only active areas can be deactivated; there's no delete/reactivate action here */}
                     {area.isActive && (
                       <button
-                        onClick={() => remove.mutate(area.id)}
+                        onClick={() => setDeactivateTarget(area)}
                         className="p-2 rounded-lg hover:bg-surface-variant text-error"
                         aria-label="Deactivate"
                       >
@@ -130,8 +145,19 @@ export default function AdminDeliveryAreasPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!deactivateTarget}
+        title="Deactivate delivery area?"
+        message={`"${deactivateTarget?.name}" will no longer be deliverable until it's reactivated.`}
+        confirmLabel="Deactivate"
+        isLoading={remove.isPending}
+        onCancel={() => setDeactivateTarget(null)}
+        onConfirm={() => deactivateTarget && remove.mutate(deactivateTarget.id, { onSuccess: () => setDeactivateTarget(null) })}
+      />
     </div>
   );
 }

@@ -27,7 +27,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-headline-lg font-headline-lg">Dashboard</h1>
+        <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Dashboard</h1>
         <p className="text-secondary mt-1">Here&apos;s what&apos;s happening at your restaurant today.</p>
       </div>
 

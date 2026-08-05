@@ -43,7 +43,7 @@ export default function AdminOrderDetailPage() {
       {/* Order header: number, placed time, current status */}
       <div className="flex flex-wrap justify-between items-start gap-4">
         <div>
-          <h1 className="text-headline-lg font-headline-lg">{order.orderNumber}</h1>
+          <h1 className="text-headline-md md:text-headline-lg font-headline-lg">{order.orderNumber}</h1>
           <p className="text-secondary text-sm mt-1">
             Placed {new Date(order.placedAt).toLocaleString()}
           </p>

@@ -51,7 +51,7 @@ export default function AdminProfilePage() {
   return (
     <div className="max-w-lg space-y-8">
       <div>
-        <h1 className="text-headline-lg font-headline-lg">Profile</h1>
+        <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Profile</h1>
         <p className="text-secondary mt-1">Manage your own admin account.</p>
       </div>
 
