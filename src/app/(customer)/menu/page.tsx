@@ -143,7 +143,7 @@ function MenuPageContent() {
       {data && data.items.length > 0 && (
         <>
           {/* grid-template-columns steps up from 1 col on small screens to 3 on desktop */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
             {data.items.map((item) => (
               <MenuItemCard key={item.id} item={item} />
             ))}

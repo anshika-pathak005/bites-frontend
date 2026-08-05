@@ -7,8 +7,9 @@ import { ROUTES } from "@/constants/routes";
 import type { AdminUser } from "@/types/admin.types";
 
 // localStorage keys used to persist the admin session across page loads/tabs.
+// The refresh token itself is NOT among these — the backend sets it as an
+// HttpOnly cookie, so JS never sees it and has nothing to store.
 const ACCESS_TOKEN_KEY = "bites_admin_access_token";
-const REFRESH_TOKEN_KEY = "bites_admin_refresh_token";
 const ADMIN_USER_KEY = "bites_admin_user";
 
 interface AdminAuthContextValue {
@@ -50,28 +51,25 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     const result = await loginRequest(email, password);
     if (!result) throw new Error("Login failed");
 
-    // Access token, refresh token, and user record are all stored so the
-    // session survives a refresh (restored in the effect above).
+    // Access token and user record are stored so the session survives a
+    // refresh (restored in the effect above). The refresh token itself
+    // arrived as an HttpOnly cookie — the browser holds it, not us.
     window.localStorage.setItem(ACCESS_TOKEN_KEY, result.accessToken);
-    window.localStorage.setItem(REFRESH_TOKEN_KEY, result.refreshToken);
     window.localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(result.admin));
     setAdmin(result.admin);
   }
 
   // Revokes the refresh token server-side (best effort), clears local session, redirects to login.
   async function logout() {
-    const refreshToken = window.localStorage.getItem(REFRESH_TOKEN_KEY);
     // Best-effort — if the network call fails, we still clear the local
-    // session so the admin is logged out on THIS device regardless.
-    if (refreshToken) {
-      try {
-        await logoutRequest(refreshToken);
-      } catch {
-        // intentionally ignored
-      }
+    // session so the admin is logged out on THIS device regardless. No
+    // refresh token to pass — it goes along as a cookie automatically.
+    try {
+      await logoutRequest();
+    } catch {
+      // intentionally ignored
     }
     window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-    window.localStorage.removeItem(REFRESH_TOKEN_KEY);
     window.localStorage.removeItem(ADMIN_USER_KEY);
     setAdmin(null);
     // Send the admin back to the login page after clearing the session

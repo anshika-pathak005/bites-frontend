@@ -42,7 +42,8 @@ export default function MenuItemDetailPage() {
   return (
     <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-stack-lg">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter items-start">
-        <div className="relative aspect-square rounded-xl overflow-hidden bg-surface-container">
+        {/* Capped width keeps the image from stretching across the whole grid column on large screens */}
+        <div className="relative aspect-square w-full max-w-sm mx-auto lg:mx-0 rounded-xl overflow-hidden border border-outline-variant bg-surface-container">
           {item.imageUrl ? (
             <Image src={item.imageUrl} alt={item.name} fill className="object-cover" priority />
           ) : (

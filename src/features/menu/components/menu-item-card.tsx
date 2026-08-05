@@ -22,30 +22,32 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
 
   return (
     <div className="flex flex-col h-full bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-xl transition-all group overflow-hidden">
-      {/* aspect-square keeps the image a true 1:1 ratio at every card width, object-cover avoids stretching */}
-      <Link href={`/menu/${item.id}`} className="block relative aspect-square w-full overflow-hidden bg-surface-container">
-        {item.imageUrl ? (
-          <Image
-            src={item.imageUrl}
-            alt={item.name}
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-on-surface-variant">No image</div>
-        )}
-        {/* Overlay blocks the "add" affordance visually when the item is out of stock */}
-        {!item.isAvailable && (
-          <div className="absolute inset-0 bg-inverse-surface/60 flex items-center justify-center">
-            <span className="text-inverse-on-surface font-label-md text-label-md">Out of Stock</span>
-          </div>
-        )}
-      </Link>
+      {/* Inset padding shrinks the image within the card; aspect-square keeps it a true 1:1 ratio, object-cover avoids stretching */}
+      <div className="p-2">
+        <Link href={`/menu/${item.id}`} className="block relative aspect-square w-full overflow-hidden rounded-lg bg-surface-container">
+          {item.imageUrl ? (
+            <Image
+              src={item.imageUrl}
+              alt={item.name}
+              fill
+              className="object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-on-surface-variant">No image</div>
+          )}
+          {/* Overlay blocks the "add" affordance visually when the item is out of stock */}
+          {!item.isAvailable && (
+            <div className="absolute inset-0 bg-inverse-surface/60 flex items-center justify-center">
+              <span className="text-inverse-on-surface font-label-sm text-label-sm">Out of Stock</span>
+            </div>
+          )}
+        </Link>
+      </div>
 
-      <div className="p-stack-md flex flex-col flex-1">
+      <div className="px-3 pb-3 flex flex-col flex-1">
         <div className="flex justify-between items-start gap-2 mb-1">
           <Link href={`/menu/${item.id}`}>
-            <h3 className="font-headline-md text-headline-md hover:text-primary transition-colors">
+            <h3 className="font-label-md text-label-md hover:text-primary transition-colors">
               {item.name}
             </h3>
           </Link>
@@ -53,7 +55,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
         </div>
 
         {/* Price moved up near the name, Meesho-style — the buttons row owns the bottom of the card */}
-        <span className="text-primary font-bold text-headline-md mb-2">{formatPrice(item.price)}</span>
+        <span className="text-primary font-bold text-body-lg mb-2">{formatPrice(item.price)}</span>
 
         {(item.isBestSeller || item.isTodaysSpecial) && (
           <div className="flex flex-wrap gap-2 mb-2">
@@ -67,7 +69,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
         )}
 
         {item.description && (
-          <p className="text-secondary text-body-md mb-3 line-clamp-2">{item.description}</p>
+          <p className="text-secondary text-xs mb-3 line-clamp-2">{item.description}</p>
         )}
 
         {/* mt-auto pins the action row to the bottom even when descriptions vary in length */}

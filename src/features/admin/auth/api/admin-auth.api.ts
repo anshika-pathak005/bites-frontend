@@ -8,9 +8,10 @@ export async function loginRequest(email: string, password: string) {
   return data.data;
 }
 
-// Invalidates the given refresh token via POST /admin/auth/logout.
-export async function logoutRequest(refreshToken: string) {
-  await apiClient.post("/admin/auth/logout", { refreshToken });
+// Invalidates the session via POST /admin/auth/logout — no body needed,
+// the backend reads the refresh token from the HttpOnly cookie.
+export async function logoutRequest() {
+  await apiClient.post("/admin/auth/logout");
 }
 
 // Fetches the logged-in admin's own profile via GET /admin/profile.

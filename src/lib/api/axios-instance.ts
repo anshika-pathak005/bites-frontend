@@ -3,13 +3,16 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 // Single shared Axios client for the whole app: attaches the admin auth
 // token on requests and transparently refreshes it on a 401 (see below).
 const ACCESS_TOKEN_KEY = "bites_admin_access_token";
-const REFRESH_TOKEN_KEY = "bites_admin_refresh_token";
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api",
   headers: {
     "Content-Type": "application/json",
   },
+  // The admin refresh token now lives in an HttpOnly cookie set by the
+  // backend — withCredentials makes the browser send/accept it on every
+  // request instead of silently dropping it.
+  withCredentials: true,
 });
 
 // Attaches the admin access token when present. Guest/customer requests
@@ -32,22 +35,20 @@ apiClient.interceptors.request.use((config) => {
 let refreshPromise: Promise<string | null> | null = null;
 
 async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = window.localStorage.getItem(REFRESH_TOKEN_KEY);
-  if (!refreshToken) return null;
-
+  // No body needed — the refresh token rides along as an HttpOnly cookie
+  // (withCredentials below), the backend reads it from there directly.
   // A plain axios call, not apiClient — going through apiClient here would
   // re-trigger this same response interceptor and could loop.
   try {
     const { data } = await axios.post(
       `${apiClient.defaults.baseURL}/admin/auth/refresh`,
-      { refreshToken }
+      {},
+      { withCredentials: true }
     );
     const newAccessToken: string | undefined = data?.data?.accessToken;
-    const newRefreshToken: string | undefined = data?.data?.refreshToken;
-    if (!newAccessToken || !newRefreshToken) return null;
+    if (!newAccessToken) return null;
 
     window.localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken);
-    window.localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
     return newAccessToken;
   } catch {
     return null;
@@ -58,7 +59,6 @@ async function refreshAccessToken(): Promise<string | null> {
 // when the refresh token itself is no longer valid.
 function clearSessionAndRedirectToLogin() {
   window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
   window.localStorage.removeItem("bites_admin_user");
   if (window.location.pathname.startsWith("/admin") && window.location.pathname !== "/admin/login") {
     window.location.href = "/admin/login";

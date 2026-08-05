@@ -193,7 +193,7 @@ function CheckoutPageContent() {
             cartQuery.data?.items.map((item) => (
               <div key={item.id} className="flex justify-between text-body-md">
                 <span className="text-secondary">{item.name} × {item.quantity}</span>
-                <span>{formatPrice(item.subtotal)}</span>
+                {/* <span>{formatPrice(item.subtotal)}</span> */}
               </div>
             ))}
 

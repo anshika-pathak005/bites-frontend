@@ -6,10 +6,10 @@ export interface AdminUser {
   role: "ADMIN" | "SUPER_ADMIN";
 }
 
-// Response shape from the admin login/refresh endpoints.
+// Response shape from the admin login/refresh endpoints. The refresh token
+// is no longer in this body — the backend sets it as an HttpOnly cookie instead.
 export interface AdminAuthResponse {
   accessToken: string;
-  refreshToken: string;
   admin: AdminUser;
 }
 
