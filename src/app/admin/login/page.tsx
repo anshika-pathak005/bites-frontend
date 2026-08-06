@@ -44,26 +44,27 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-container-low px-margin-mobile">
-      <div className="w-full max-w-sm bg-surface-container-lowest rounded-2xl shadow-sm p-8 space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-surface-container-low px-margin-mobile py-8">
+      <div className="w-full max-w-sm bg-surface-container-lowest border border-outline-variant/30 rounded-3xl shadow-sm p-6 sm:p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-headline-md font-headline-md text-primary">Bites Admin</h1>
-          <p className="text-secondary text-sm mt-1">Sign in to manage your restaurant</p>
+          <span className="text-primary font-label-md text-xs tracking-widest uppercase block mb-1">ADMIN PORTAL</span>
+          <h1 className="text-2xl sm:text-headline-md font-headline-md font-bold text-primary">Bites Admin</h1>
+          <p className="text-secondary text-xs sm:text-sm mt-1">Sign in to manage your restaurant</p>
         </div>
 
         {/* react-hook-form + zod handle client-side validation before onSubmit runs */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Email</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Email</label>
             <Input type="email" {...register("email")} placeholder="admin@bites.example" />
             {errors.email && <p className="text-error text-xs mt-1">{errors.email.message}</p>}
           </div>
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Password</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Password</label>
             <Input type="password" {...register("password")} placeholder="••••••••" />
             {errors.password && <p className="text-error text-xs mt-1">{errors.password.message}</p>}
           </div>
-          <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" size="lg" className="w-full text-white font-semibold py-3.5 rounded-xl" disabled={isSubmitting}>
             {isSubmitting ? "Signing in..." : "Sign In"}
           </Button>
         </form>

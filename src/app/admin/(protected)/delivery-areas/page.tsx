@@ -65,11 +65,12 @@ export default function AdminDeliveryAreasPage() {
       {/* Page header with the "New Area" action */}
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
-          <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Delivery Areas</h1>
-          <p className="text-secondary mt-1">Control where you deliver and how much it costs.</p>
+          <span className="text-primary font-label-md text-xs tracking-widest uppercase block mb-1">DELIVERY REGIONS</span>
+          <h1 className="text-2xl sm:text-headline-lg font-bold text-on-surface">Delivery Areas</h1>
+          <p className="text-secondary text-xs sm:text-sm mt-1">Control where you deliver and how much it costs.</p>
         </div>
-        <Button onClick={startCreate}>
-          <Plus className="w-4 h-4" /> New Area
+        <Button onClick={startCreate} className="text-white font-semibold">
+          <Plus className="w-4 h-4 mr-1.5" /> New Area
         </Button>
       </div>
 
@@ -77,74 +78,76 @@ export default function AdminDeliveryAreasPage() {
       <Modal open={showForm} title={editingId ? "Edit Delivery Area" : "New Delivery Area"} onClose={() => setShowForm(false)}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Area Name</label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Area Name</label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="rounded-xl" />
           </div>
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Delivery Charge</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Delivery Charge</label>
             <Input
               type="number"
               step="0.01"
               value={form.deliveryCharge}
               onChange={(e) => setForm({ ...form, deliveryCharge: e.target.value === "" ? "" : Number(e.target.value) })}
               required
+              className="rounded-xl"
             />
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
+          <label className="flex items-center gap-2 text-xs sm:text-sm font-medium cursor-pointer">
+            <input type="checkbox" className="w-4 h-4 accent-primary rounded" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
             Active (serviceable)
           </label>
-          <div className="flex flex-wrap gap-3">
-            <Button type="submit" disabled={create.isPending || update.isPending}>Save</Button>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <Button type="submit" className="text-white font-semibold" disabled={create.isPending || update.isPending}>Save</Button>
             <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
           </div>
         </form>
       </Modal>
 
       {/* Delivery area list table */}
-      <div className="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="flex justify-center py-16"><Spinner className="w-8 h-8" /></div>
+          <div className="flex justify-center py-16"><Spinner className="w-8 h-8 text-primary" /></div>
         ) : (
           <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-secondary border-b border-outline-variant/30">
-                <th className="py-3 px-4">Area</th>
-                <th className="py-3 px-4">Delivery Charge</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {areas?.map((area) => (
-                <tr key={area.id} className="border-b border-outline-variant/10 last:border-0">
-                  <td className="py-3 px-4">{area.name}</td>
-                  <td className="py-3 px-4">{formatPrice(area.deliveryCharge)}</td>
-                  <td className="py-3 px-4">
-                    <span className={area.isActive ? "text-green-700" : "text-secondary"}>
-                      {area.isActive ? "Serviceable" : "Inactive"}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 flex gap-2">
-                    <button onClick={() => startEdit(area)} className="p-2 rounded-lg hover:bg-surface-variant" aria-label="Edit">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    {/* Only active areas can be deactivated; there's no delete/reactivate action here */}
-                    {area.isActive && (
-                      <button
-                        onClick={() => setDeactivateTarget(area)}
-                        className="p-2 rounded-lg hover:bg-surface-variant text-error"
-                        aria-label="Deactivate"
-                      >
-                        <EyeOff className="w-4 h-4" />
-                      </button>
-                    )}
-                  </td>
+            <table className="w-full text-xs sm:text-sm">
+              <thead>
+                <tr className="text-left text-secondary bg-surface-container-low border-b border-outline-variant/30 font-semibold">
+                  <th className="py-3 px-4">Area</th>
+                  <th className="py-3 px-4">Delivery Charge</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {areas?.map((area) => (
+                  <tr key={area.id} className="border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low/50 transition-colors">
+                    <td className="py-3 px-4 font-semibold text-on-surface">{area.name}</td>
+                    <td className="py-3 px-4 font-medium text-on-surface">{formatPrice(area.deliveryCharge)}</td>
+                    <td className="py-3 px-4 font-semibold">
+                      <span className={area.isActive ? "text-green-700 bg-green-100 px-2.5 py-0.5 rounded-full text-xs" : "text-secondary bg-surface-container-high px-2.5 py-0.5 rounded-full text-xs"}>
+                        {area.isActive ? "Serviceable" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => startEdit(area)} className="p-2 rounded-lg hover:bg-surface-variant text-on-surface transition-colors" aria-label="Edit">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        {area.isActive && (
+                          <button
+                            onClick={() => setDeactivateTarget(area)}
+                            className="p-2 rounded-lg hover:bg-error-container/30 text-error transition-colors"
+                            aria-label="Deactivate"
+                          >
+                            <EyeOff className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

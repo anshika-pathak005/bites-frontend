@@ -21,10 +21,10 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-xl transition-all group overflow-hidden">
-      {/* Inset padding shrinks the image within the card; aspect-square keeps it a true 1:1 ratio, object-cover avoids stretching */}
-      <div className="p-2">
-        <Link href={`/menu/${item.id}`} className="block relative aspect-square w-full overflow-hidden rounded-lg bg-surface-container">
+    <div className="flex flex-col h-full bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group overflow-hidden">
+      {/* Inset padding shrinks the image within the card; aspect-square keeps it a true 1:1 ratio */}
+      <div className="p-2 sm:p-2.5">
+        <Link href={`/menu/${item.id}`} className="block relative aspect-square w-full overflow-hidden rounded-xl bg-surface-container">
           {item.imageUrl ? (
             <Image
               src={item.imageUrl}
@@ -33,59 +33,59 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
               className="object-cover group-hover:scale-110 transition-transform duration-500"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-on-surface-variant">No image</div>
+            <div className="w-full h-full flex items-center justify-center text-on-surface-variant text-xs">No image</div>
           )}
           {/* Overlay blocks the "add" affordance visually when the item is out of stock */}
           {!item.isAvailable && (
             <div className="absolute inset-0 bg-inverse-surface/60 flex items-center justify-center">
-              <span className="text-inverse-on-surface font-label-sm text-label-sm">Out of Stock</span>
+              <span className="text-inverse-on-surface font-label-sm text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded bg-black/60">Out of Stock</span>
             </div>
           )}
         </Link>
       </div>
 
-      <div className="px-3 pb-3 flex flex-col flex-1">
-        <div className="flex justify-between items-start gap-2 mb-1">
-          <Link href={`/menu/${item.id}`}>
-            <h3 className="font-label-md text-label-md hover:text-primary transition-colors">
+      <div className="px-2.5 sm:px-3.5 pb-3 sm:pb-3.5 flex flex-col flex-1">
+        <div className="flex justify-between items-start gap-1.5 mb-1">
+          <Link href={`/menu/${item.id}`} className="min-w-0 flex-1">
+            <h3 className="font-label-md text-xs sm:text-body-md font-semibold text-on-surface hover:text-primary transition-colors line-clamp-1">
               {item.name}
             </h3>
           </Link>
           <DietChip isVeg={item.isVeg} />
         </div>
 
-        {/* Price moved up near the name, Meesho-style — the buttons row owns the bottom of the card */}
-        <span className="text-primary font-bold text-body-lg mb-2">{formatPrice(item.price)}</span>
+        {/* Price */}
+        <span className="text-primary font-bold text-sm sm:text-body-lg mb-1.5 sm:mb-2">{formatPrice(item.price)}</span>
 
         {(item.isBestSeller || item.isTodaysSpecial) && (
-          <div className="flex flex-wrap gap-2 mb-2">
+          <div className="flex flex-wrap gap-1 mb-2">
             {item.isBestSeller && (
               <Badge>
-                <Star className="w-3 h-3" /> Best Seller
+                <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Best Seller
               </Badge>
             )}
-            {item.isTodaysSpecial && <Badge>Today&apos;s Special</Badge>}
+            {item.isTodaysSpecial && <Badge>Special</Badge>}
           </div>
         )}
 
         {item.description && (
-          <p className="text-secondary text-xs mb-3 line-clamp-2">{item.description}</p>
+          <p className="text-secondary text-[11px] sm:text-xs mb-3 line-clamp-2">{item.description}</p>
         )}
 
         {/* mt-auto pins the action row to the bottom even when descriptions vary in length */}
-        <div className="mt-auto pt-1 flex gap-2">
+        <div className="mt-auto pt-1 flex gap-1.5 sm:gap-2">
           <button
             onClick={() => addItem.mutate({ menuItemId: item.id, quantity: 1 })}
             disabled={!item.isAvailable || addItem.isPending}
-            className="flex-1 flex items-center justify-center gap-1.5 border border-primary text-primary rounded-full py-2 text-label-sm font-label-sm hover:bg-primary-fixed/30 transition-colors disabled:opacity-40 disabled:pointer-events-none"
+            className="flex-1 flex items-center justify-center gap-1 border border-primary text-primary font-semibold rounded-full py-1.5 sm:py-2 text-[11px] sm:text-xs hover:bg-primary-fixed/30 transition-colors disabled:opacity-40 disabled:pointer-events-none active:scale-95"
           >
-            {addItem.isPending ? <Spinner className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
-            Add to Cart
+            {addItem.isPending ? <Spinner className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+            Add
           </button>
           <button
             onClick={handleBuyNow}
             disabled={!item.isAvailable}
-            className="flex-1 flex items-center justify-center bg-primary text-on-primary rounded-full py-2 text-label-sm font-label-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:pointer-events-none"
+            className="flex-1 flex items-center justify-center bg-primary text-white font-semibold rounded-full py-1.5 sm:py-2 text-[11px] sm:text-xs hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:pointer-events-none active:scale-95"
           >
             Buy Now
           </button>

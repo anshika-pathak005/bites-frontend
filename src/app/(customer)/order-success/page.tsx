@@ -68,21 +68,28 @@ function OrderSuccessContent() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 py-24 px-margin-mobile text-center max-w-md mx-auto">
-      <div className="w-20 h-20 rounded-full bg-primary-fixed flex items-center justify-center">
-        <CheckCircle2 className="w-10 h-10 text-primary" />
+    <div className="px-margin-mobile md:px-margin-desktop py-stack-md sm:py-stack-lg max-w-md mx-auto">
+      <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-6 sm:p-8 text-center shadow-sm space-y-5 my-6">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary-fixed/50 text-primary flex items-center justify-center mx-auto">
+          <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10" />
+        </div>
+        <div>
+          <span className="text-primary font-label-md text-xs sm:text-label-sm tracking-widest uppercase block mb-1">SUCCESS</span>
+          <h1 className="font-headline-lg text-2xl sm:text-headline-lg font-bold text-on-surface">Order Placed!</h1>
+        </div>
+        <p className="text-secondary text-sm sm:text-body-md">
+          Thanks, {order.customerName.split(" ")[0]} — your order has been received and is being prepared.
+        </p>
+        <div className="bg-surface-container-high/60 border border-outline-variant/30 rounded-2xl px-6 py-4 w-full">
+          <p className="text-xs text-secondary uppercase tracking-widest font-semibold">Order ID</p>
+          <p className="font-headline-md text-xl sm:text-headline-md text-primary font-bold">{order.orderNumber}</p>
+        </div>
+        <div className="pt-2">
+          <Link href={`/track-order?orderNumber=${order.orderNumber}`} className="block w-full">
+            <Button size="lg" className="w-full text-white font-semibold rounded-xl">Track Order Status</Button>
+          </Link>
+        </div>
       </div>
-      <h1 className="font-headline-lg text-headline-lg">Order Placed!</h1>
-      <p className="text-secondary">
-        Thanks, {order.customerName.split(" ")[0]} — your order has been received and is being reviewed by the restaurant.
-      </p>
-      <div className="bg-surface-container-lowest rounded-2xl shadow-sm px-8 py-4 w-full">
-        <p className="text-xs text-secondary uppercase tracking-widest">Order ID</p>
-        <p className="font-headline-md text-headline-md text-primary">{order.orderNumber}</p>
-      </div>
-      <Link href={`/track-order?orderNumber=${order.orderNumber}`} className="w-full">
-        <Button size="lg" className="w-full">Track Order</Button>
-      </Link>
     </div>
   );
 }

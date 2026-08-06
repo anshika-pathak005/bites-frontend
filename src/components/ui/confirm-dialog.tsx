@@ -38,16 +38,16 @@ export function ConfirmDialog({
 
   return createPortal(
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-inverse-surface/60" onClick={onCancel} />
-      <div className="relative z-10 flex items-center justify-center min-h-full p-4">
-        <div className="relative bg-surface-container-lowest rounded-2xl shadow-xl p-6 max-w-sm w-full space-y-4">
-          <h3 className="font-headline-md text-headline-md">{title}</h3>
-          <p className="text-secondary text-body-md">{message}</p>
-          <div className="flex flex-wrap justify-end gap-3">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+      <div className="absolute inset-0 bg-inverse-surface/60 backdrop-blur-xs" onClick={onCancel} />
+      <div className="relative z-10 flex items-center justify-center min-h-full p-3 sm:p-4">
+        <div className="relative bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-2xl p-5 sm:p-6 max-w-sm w-full space-y-4">
+          <h3 className="font-headline-md text-lg sm:text-headline-md font-bold text-on-surface">{title}</h3>
+          <p className="text-secondary text-xs sm:text-body-md">{message}</p>
+          <div className="flex flex-wrap justify-end gap-2.5 sm:gap-3 pt-2">
+            <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isLoading} className="font-semibold">
               {cancelLabel}
             </Button>
-            <Button type="button" variant="destructive" onClick={onConfirm} disabled={isLoading}>
+            <Button type="button" variant="destructive" size="sm" onClick={onConfirm} disabled={isLoading} className="text-white font-semibold">
               {isLoading ? "Please wait..." : confirmLabel}
             </Button>
           </div>

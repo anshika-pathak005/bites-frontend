@@ -40,10 +40,10 @@ export default function MenuItemDetailPage() {
   }
 
   return (
-    <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-stack-lg">
+    <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-stack-md sm:py-stack-lg">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter items-start">
         {/* Capped width keeps the image from stretching across the whole grid column on large screens */}
-        <div className="relative aspect-square w-full max-w-sm mx-auto lg:mx-0 rounded-xl overflow-hidden border border-outline-variant bg-surface-container">
+        <div className="relative aspect-square w-full max-w-sm mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-outline-variant/30 bg-surface-container shadow-sm">
           {item.imageUrl ? (
             <Image src={item.imageUrl} alt={item.name} fill className="object-cover" priority />
           ) : (
@@ -51,9 +51,9 @@ export default function MenuItemDetailPage() {
           )}
         </div>
 
-        <div className="space-y-stack-sm">
+        <div className="space-y-stack-sm mt-4 lg:mt-0">
           <div className="flex items-start justify-between gap-4">
-            <h1 className="font-headline-lg text-headline-lg">{item.name}</h1>
+            <h1 className="font-headline-lg text-2xl sm:text-headline-lg font-bold text-on-surface">{item.name}</h1>
             {item.isVeg && <Leaf className="w-6 h-6 text-green-600 shrink-0 mt-1" aria-label="Vegetarian" />}
           </div>
 
@@ -68,27 +68,27 @@ export default function MenuItemDetailPage() {
             {!item.isAvailable && <Badge className="bg-error-container text-on-error-container border-none">Out of Stock</Badge>}
           </div>
 
-          {item.description && <p className="text-body-lg font-body-lg text-secondary">{item.description}</p>}
+          {item.description && <p className="text-body-md sm:text-body-lg font-body-md text-secondary">{item.description}</p>}
 
-          <p className="text-primary font-bold text-headline-lg">{formatPrice(item.price)}</p>
+          <p className="text-primary font-bold text-headline-md sm:text-headline-lg">{formatPrice(item.price)}</p>
 
           {item.isAvailable && (
             <>
               <div className="flex items-center gap-4 pt-2">
-                <span className="font-label-md text-label-md">Quantity</span>
+                <span className="font-label-md text-sm sm:text-label-md font-semibold text-on-surface">Quantity</span>
                 {/* Quantity stepper, floored at 1 */}
-                <div className="flex items-center gap-3 bg-surface-container-high rounded-full px-2 py-1">
+                <div className="flex items-center gap-3 bg-surface-container-high rounded-full px-2.5 py-1 border border-outline-variant/30">
                   <button
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors"
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface"
                     aria-label="Decrease quantity"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
-                  <span className="w-6 text-center font-label-md">{quantity}</span>
+                  <span className="w-6 text-center font-label-md font-bold text-on-surface">{quantity}</span>
                   <button
                     onClick={() => setQuantity((q) => q + 1)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors"
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface"
                     aria-label="Increase quantity"
                   >
                     <Plus className="w-4 h-4" />
@@ -97,16 +97,17 @@ export default function MenuItemDetailPage() {
               </div>
 
               {/* Add to Cart (Cart Flow) vs Buy Now (skips cart, goes straight to checkout) */}
-              <div className="flex flex-wrap gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
                 <Button
                   size="lg"
                   variant="outline"
+                  className="w-full sm:w-auto font-semibold"
                   onClick={() => addItem.mutate({ menuItemId: item.id, quantity })}
                   disabled={addItem.isPending}
                 >
                   Add to Cart
                 </Button>
-                <Button size="lg" onClick={handleBuyNow}>
+                <Button size="lg" className="w-full sm:w-auto text-white font-semibold" onClick={handleBuyNow}>
                   Buy Now
                 </Button>
               </div>

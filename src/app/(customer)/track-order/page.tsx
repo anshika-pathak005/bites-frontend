@@ -59,15 +59,16 @@ function TrackOrderContent() {
   }
 
   return (
-    <div className="px-margin-mobile md:px-margin-desktop max-w-2xl mx-auto py-stack-lg">
-      <div className="text-center mb-stack-lg">
-        <h1 className="font-headline-lg text-headline-lg">Track Your Order</h1>
-        <p className="text-secondary mt-2">
-          Look up your order using its Order ID or your phone number.
+    <div className="px-margin-mobile md:px-margin-desktop max-w-2xl mx-auto py-stack-md sm:py-stack-lg">
+      <div className="text-center mb-stack-md sm:mb-stack-lg">
+        <span className="text-primary font-label-md text-label-sm sm:text-label-md tracking-widest uppercase block mb-1">LIVE STATUS</span>
+        <h1 className="font-headline-lg text-2xl sm:text-headline-lg font-bold text-on-surface">Track Your Order</h1>
+        <p className="text-secondary text-sm sm:text-body-md mt-1">
+          Look up your order status using your Order ID or phone number.
         </p>
       </div>
 
-      <div className="flex justify-center gap-3 mb-stack-md">
+      <div className="flex justify-center gap-2 sm:gap-3 mb-stack-md">
         <ModeTab
           label="Order ID"
           active={mode === "orderNumber"}
@@ -80,11 +81,11 @@ function TrackOrderContent() {
         />
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-3 mb-stack-lg">
+      <form onSubmit={handleSubmit} className="flex gap-2 sm:gap-3 mb-stack-lg">
         <div className="relative flex-grow">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
           <Input
-            className="pl-11"
+            className="pl-11 py-2.5 sm:py-3 text-sm sm:text-body-md rounded-xl"
             placeholder={
               mode === "orderNumber" ? "e.g. ORD-7K4QX9P2" : "e.g. 9876543210"
             }
@@ -92,51 +93,54 @@ function TrackOrderContent() {
             onChange={(e) => setValue(e.target.value)}
           />
         </div>
-        <Button type="submit" disabled={isPending}>
-          {isPending ? <Spinner className="w-5 h-5" /> : "Track"}
+        <Button type="submit" size="md" className="text-white font-semibold px-5 sm:px-6" disabled={isPending}>
+          {isPending ? <Spinner className="w-4 h-4" /> : "Track"}
         </Button>
       </form>
 
       {isError && (
-        <p className="text-center text-secondary">
+        <p className="text-center text-secondary py-8">
           Something went wrong. Please try again.
         </p>
       )}
 
       {orders && orders.length === 0 && (
-        <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <div className="flex flex-col items-center gap-3 py-12 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-8 shadow-sm">
           <Package className="w-10 h-10 text-on-surface-variant" />
-          <p className="text-secondary">No orders found.</p>
+          <p className="text-secondary text-body-md">No orders found matching your search.</p>
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {orders?.map((order) => (
           <div
             key={order.id}
-            className="bg-surface-container-lowest rounded-2xl shadow-sm p-6"
+            className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4 hover:shadow-md transition-all"
           >
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start gap-2 border-b border-outline-variant/30 pb-3">
               <div>
-                <p className="text-xs text-secondary uppercase tracking-widest">
+                <p className="text-[11px] text-secondary uppercase tracking-widest font-semibold">
                   Order ID
                 </p>
-                <p className="font-headline-md text-headline-md text-primary">
+                <p className="font-headline-md text-lg sm:text-headline-md text-primary font-bold">
                   {order.orderNumber}
                 </p>
               </div>
-              <span className="text-headline-md font-headline-md">
-                {formatPrice(order.grandTotal)}
-              </span>
+              <div className="text-right">
+                <span className="text-xs text-secondary block">Total Amount</span>
+                <span className="text-lg sm:text-headline-md font-bold text-on-surface">
+                  {formatPrice(order.grandTotal)}
+                </span>
+              </div>
             </div>
 
             {/* Cancelled orders skip the progress tracker entirely */}
             {order.status === "CANCELLED" ? (
-              <div className="px-4 py-3 rounded-lg bg-error-container text-on-error-container text-sm font-label-md">
+              <div className="px-4 py-3 rounded-xl bg-error-container text-on-error-container text-xs sm:text-sm font-semibold">
                 This order was cancelled.
               </div>
             ) : (
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between py-2 overflow-x-auto border-b border-outline-variant/30 pb-4">
                 {PROGRESS_STEPS.map((step, index) => {
                   // A step is "done" if it's at or before the order's current status
                   const currentIndex = PROGRESS_STEPS.indexOf(order.status);
@@ -144,25 +148,25 @@ function TrackOrderContent() {
                   return (
                     <div
                       key={step}
-                      className="flex-1 flex flex-col items-center relative"
+                      className="flex-1 flex flex-col items-center relative min-w-[55px]"
                     >
                       {index > 0 && (
                         <div
                           className={cn(
-                            "absolute top-3 right-1/2 w-full h-0.5",
-                            isDone ? "bg-primary" : "bg-outline-variant",
+                            "absolute top-2.5 sm:top-3 right-1/2 w-full h-0.5",
+                            isDone ? "bg-primary" : "bg-outline-variant/60",
                           )}
                         />
                       )}
                       <div
                         className={cn(
-                          "w-6 h-6 rounded-full z-10 border-2",
+                          "w-5 h-5 sm:w-6 sm:h-6 rounded-full z-10 border-2 transition-colors",
                           isDone
                             ? "bg-primary border-primary"
                             : "bg-surface-container-lowest border-outline-variant",
                         )}
                       />
-                      <span className="text-[10px] text-center mt-2 text-secondary max-w-[70px]">
+                      <span className="text-[9px] sm:text-[10px] text-center mt-1.5 text-secondary font-medium leading-tight">
                         {ORDER_STATUS_LABELS[step]}
                       </span>
                     </div>
@@ -171,15 +175,17 @@ function TrackOrderContent() {
               </div>
             )}
 
-            <div className="border-t border-outline-variant/30 pt-4 space-y-2">
+            {/* Order Items Breakdown */}
+            <div className="space-y-1.5 pt-1">
+              <p className="text-xs text-secondary font-semibold uppercase tracking-wider mb-2">Ordered Items</p>
               {order.items.map((item) => (
-                <div key={item.id} className="text-sm text-secondary">
-                    <span>
-                      {item.itemName} × {item.quantity}
-                    </span>
-                  <div className="text-left mt-3">
-                    {formatPrice(item.subtotal)} <span>+ delivery charge</span>
-                  </div>
+                <div key={item.id} className="flex justify-between items-center text-xs sm:text-sm text-secondary">
+                  <span>
+                    {item.itemName} × {item.quantity}
+                  </span>
+                  <span className="font-semibold text-on-surface">
+                    {formatPrice(item.subtotal)}
+                  </span>
                 </div>
               ))}
             </div>
@@ -196,8 +202,8 @@ function ModeTab({ label, active, onClick }: { label: string; active: boolean; o
     <button
       onClick={onClick}
       className={cn(
-        "px-5 py-2 rounded-full font-label-md text-label-md transition-all",
-        active ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface hover:bg-primary-fixed"
+        "px-4 py-2 sm:px-5 sm:py-2 rounded-full text-xs sm:text-label-md font-semibold transition-all duration-200 cursor-pointer select-none",
+        active ? "bg-primary text-white shadow-sm" : "bg-surface-container-high text-on-surface hover:bg-primary-fixed hover:text-on-primary-fixed-variant"
       )}
     >
       {label}

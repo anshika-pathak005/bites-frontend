@@ -91,21 +91,22 @@ export default function AdminSettingsPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Restaurant Settings</h1>
-        <p className="text-secondary mt-1">Basic info shown to customers, plus operating hours.</p>
+        <span className="text-primary font-label-md text-xs tracking-widest uppercase block mb-1">CONFIGURATION</span>
+        <h1 className="text-2xl sm:text-headline-lg font-bold text-on-surface">Restaurant Settings</h1>
+        <p className="text-secondary text-xs sm:text-sm mt-1">Basic info shown to customers, plus operating hours.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-surface-container-lowest rounded-2xl shadow-sm p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
         <div>
-          <label className="font-label-md text-label-sm block mb-2">Restaurant Name</label>
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Restaurant Name</label>
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="rounded-xl" />
         </div>
         <div>
-          <label className="font-label-md text-label-sm block mb-2">Description</label>
-          <Textarea value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Description</label>
+          <Textarea value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} className="rounded-xl" />
         </div>
         <div>
-          <label className="font-label-md text-label-sm block mb-2">Restaurant Logo</label>
+          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Restaurant Logo</label>
           <ImageUploadField
             value={form.logoUrl ?? ""}
             onChange={(url) => setForm({ ...form, logoUrl: url })}
@@ -115,14 +116,13 @@ export default function AdminSettingsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Contact Email</label>
-            <Input value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Contact Email</label>
+            <Input value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-xl" />
           </div>
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Contact Phone</label>
-            {/* +91 is fixed since the restaurant only takes Indian numbers — admin just types the 10-digit number */}
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Contact Phone</label>
             <div className="flex">
-              <span className="inline-flex items-center px-4 rounded-l-lg border border-r-0 border-outline-variant bg-surface-container-high text-on-surface-variant text-body-md font-body-md">
+              <span className="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-outline-variant/60 bg-surface-container-high text-on-surface-variant text-sm font-medium">
                 +91
               </span>
               <Input
@@ -131,22 +131,22 @@ export default function AdminSettingsPage() {
                 title="10-digit phone number"
                 value={form.phone ?? ""}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="rounded-l-none"
+                className="rounded-l-none rounded-r-xl"
               />
             </div>
           </div>
         </div>
 
         <div>
-          <label className="font-label-md text-label-sm block mb-2">Address</label>
-          <Input value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Address</label>
+          <Input value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} className="rounded-xl" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Opening Time</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Opening Time</label>
             <Select value={form.openingTime} onValueChange={(value) => setForm({ ...form, openingTime: value })}>
-              <SelectTrigger>
+              <SelectTrigger className="rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -157,9 +157,9 @@ export default function AdminSettingsPage() {
             </Select>
           </div>
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Closing Time</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Closing Time</label>
             <Select value={form.closingTime} onValueChange={(value) => setForm({ ...form, closingTime: value })}>
-              <SelectTrigger>
+              <SelectTrigger className="rounded-xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -172,25 +172,27 @@ export default function AdminSettingsPage() {
         </div>
 
         <div>
-          <label className="font-label-md text-label-sm block mb-2">Minimum Order Amount</label>
+          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Minimum Order Amount</label>
           <Input
             type="number"
             step="0.01"
             value={form.minOrderAmount}
             onChange={(e) => setForm({ ...form, minOrderAmount: e.target.value === "" ? "" : Number(e.target.value) })}
             required
+            className="rounded-xl"
           />
         </div>
 
-        {/* Manual override lets the admin force closed/open regardless of the opening/closing time window */}
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" className="w-4 h-4 accent-primary" checked={form.isOpen} onChange={(e) => setForm({ ...form, isOpen: e.target.checked })} />
+        <label className="flex items-center gap-2 text-xs sm:text-sm font-medium cursor-pointer pt-1">
+          <input type="checkbox" className="w-4 h-4 accent-primary rounded" checked={form.isOpen} onChange={(e) => setForm({ ...form, isOpen: e.target.checked })} />
           Restaurant is currently open (manual override)
         </label>
 
-        <Button type="submit" disabled={updateSettings.isPending || isImageUploading}>
-          {updateSettings.isPending ? "Saving..." : "Save Settings"}
-        </Button>
+        <div className="pt-2">
+          <Button type="submit" className="w-full sm:w-auto text-white font-semibold px-6" disabled={updateSettings.isPending || isImageUploading}>
+            {updateSettings.isPending ? "Saving..." : "Save Settings"}
+          </Button>
+        </div>
       </form>
     </div>
   );

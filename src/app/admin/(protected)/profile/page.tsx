@@ -49,53 +49,60 @@ export default function AdminProfilePage() {
   }
 
   return (
-    <div className="max-w-lg space-y-8">
+    <div className="max-w-lg space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Profile</h1>
-        <p className="text-secondary mt-1">Manage your own admin account.</p>
+        <span className="text-primary font-label-md text-xs tracking-widest uppercase block mb-1">ACCOUNT</span>
+        <h1 className="text-2xl sm:text-headline-lg font-bold text-on-surface">Profile</h1>
+        <p className="text-secondary text-xs sm:text-sm mt-1">Manage your own admin account.</p>
       </div>
 
       {/* Basic profile info form */}
-      <form onSubmit={handleProfileSubmit} className="bg-surface-container-lowest rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-headline-md text-headline-md">Update Profile</h3>
+      <form onSubmit={handleProfileSubmit} className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
+        <h3 className="font-headline-md text-lg sm:text-headline-md font-bold text-on-surface border-b border-outline-variant/30 pb-3">Update Profile</h3>
         <div>
-          <label className="font-label-md text-label-sm block mb-2">Name</label>
-          <Input value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} required />
+          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Name</label>
+          <Input value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} required className="rounded-xl" />
         </div>
         <div>
-          <label className="font-label-md text-label-sm block mb-2">Email</label>
-          <Input type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} required />
+          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Email</label>
+          <Input type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} required className="rounded-xl" />
         </div>
-        <Button type="submit" disabled={updateProfile.isPending}>
-          {updateProfile.isPending ? "Saving..." : "Save Changes"}
-        </Button>
+        <div className="pt-1">
+          <Button type="submit" className="w-full sm:w-auto text-white font-semibold px-6" disabled={updateProfile.isPending}>
+            {updateProfile.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
       </form>
 
       {/* Separate change-password form so it can be submitted independently of profile edits */}
-      <form onSubmit={handlePasswordSubmit} className="bg-surface-container-lowest rounded-2xl shadow-sm p-6 space-y-4">
-        <h3 className="font-headline-md text-headline-md">Change Password</h3>
+      <form onSubmit={handlePasswordSubmit} className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
+        <h3 className="font-headline-md text-lg sm:text-headline-md font-bold text-on-surface border-b border-outline-variant/30 pb-3">Change Password</h3>
         <div>
-          <label className="font-label-md text-label-sm block mb-2">Current Password</label>
+          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Current Password</label>
           <Input
             type="password"
             value={passwordForm.currentPassword}
             onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
             required
+            className="rounded-xl"
           />
         </div>
         <div>
-          <label className="font-label-md text-label-sm block mb-2">New Password</label>
+          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">New Password</label>
           <Input
             type="password"
             value={passwordForm.newPassword}
             onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
             minLength={8}
             required
+            className="rounded-xl"
           />
         </div>
-        <Button type="submit" disabled={changePassword.isPending}>
-          {changePassword.isPending ? "Updating..." : "Change Password"}
-        </Button>
+        <div className="pt-1">
+          <Button type="submit" className="w-full sm:w-auto text-white font-semibold px-6" disabled={changePassword.isPending}>
+            {changePassword.isPending ? "Updating..." : "Change Password"}
+          </Button>
+        </div>
       </form>
     </div>
   );

@@ -27,16 +27,16 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-inverse-surface/60" onClick={onClose} />
-      <div className="relative z-10 flex items-center justify-center min-h-full p-4">
-        <div className="relative bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/30 sticky top-0 bg-surface-container-lowest">
-            <h3 className="font-headline-md text-headline-md">{title}</h3>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-surface-variant transition-colors" aria-label="Close">
+      <div className="absolute inset-0 bg-inverse-surface/60 backdrop-blur-xs" onClick={onClose} />
+      <div className="relative z-10 flex items-center justify-center min-h-full p-3 sm:p-4">
+        <div className="relative bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-outline-variant/30 sticky top-0 bg-surface-container-lowest/95 backdrop-blur-md z-10">
+            <h3 className="font-headline-md text-lg sm:text-headline-md font-bold text-on-surface">{title}</h3>
+            <button onClick={onClose} className="p-1.5 sm:p-2 rounded-xl hover:bg-surface-variant text-on-surface transition-colors" aria-label="Close">
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="p-6">{children}</div>
+          <div className="p-4 sm:p-6">{children}</div>
         </div>
       </div>
     </div>,

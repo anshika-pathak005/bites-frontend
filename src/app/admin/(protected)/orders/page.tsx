@@ -35,8 +35,9 @@ export default function AdminOrdersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-headline-md md:text-headline-lg font-headline-lg">Orders</h1>
-        <p className="text-secondary mt-1">Review, accept, and track every order.</p>
+        <span className="text-primary font-label-md text-xs tracking-widest uppercase block mb-1">ORDER MANAGEMENT</span>
+        <h1 className="text-2xl sm:text-headline-lg font-bold text-on-surface">Orders</h1>
+        <p className="text-secondary text-xs sm:text-sm mt-1">Review, accept, and track every order.</p>
       </div>
 
       {/* Search and status filter controls; changing either resets to page 0 */}
@@ -45,7 +46,7 @@ export default function AdminOrdersPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
           <Input
             placeholder="Search by order # or phone"
-            className="pl-9"
+            className="pl-9 text-xs sm:text-sm py-2 rounded-xl"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -60,7 +61,7 @@ export default function AdminOrdersPage() {
             setPage(0);
           }}
         >
-          <SelectTrigger className="w-auto text-sm">
+          <SelectTrigger className="w-auto text-xs sm:text-sm rounded-xl">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -72,10 +73,10 @@ export default function AdminOrdersPage() {
         </Select>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm overflow-hidden">
         {isLoading && (
           <div className="flex justify-center py-16">
-            <Spinner className="w-8 h-8" />
+            <Spinner className="w-8 h-8 text-primary" />
           </div>
         )}
 
@@ -88,9 +89,9 @@ export default function AdminOrdersPage() {
         {/* Order list table with an inline status-change dropdown per row */}
         {data && data.items.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-xs sm:text-sm">
               <thead>
-                <tr className="text-left text-secondary border-b border-outline-variant/30">
+                <tr className="text-left text-secondary bg-surface-container-low border-b border-outline-variant/30 font-semibold">
                   <th className="py-3 px-4">Order ID</th>
                   <th className="py-3 px-4">Customer</th>
                   <th className="py-3 px-4">Total</th>
@@ -100,37 +101,30 @@ export default function AdminOrdersPage() {
               </thead>
               <tbody>
                 {data.items.map((order) => {
-                  // Allowed next statuses for this order — mirrors the server-enforced
-                  // state machine (PENDING -> ACCEPTED -> PREPARING -> OUT_FOR_DELIVERY ->
-                  // DELIVERED, with PENDING/ACCEPTED able to go to CANCELLED).
                   const nextOptions = ORDER_STATUS_TRANSITIONS[order.status];
                   return (
-                    <tr key={order.id} className="border-b border-outline-variant/10 last:border-0">
-                      <td className="py-3 px-4 font-label-md">
-                        <Link href={`${ROUTES.admin.orders}/${order.id}`} className="hover:text-primary">
+                    <tr key={order.id} className="border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low/50 transition-colors">
+                      <td className="py-3 px-4 font-semibold text-primary">
+                        <Link href={`${ROUTES.admin.orders}/${order.id}`} className="hover:underline">
                           {order.orderNumber}
                         </Link>
                       </td>
                       <td className="py-3 px-4">
-                        <div>{order.customerName}</div>
+                        <div className="font-medium text-on-surface">{order.customerName}</div>
                         <div className="text-xs text-secondary">{order.customerPhone}</div>
                       </td>
-                      <td className="py-3 px-4">{formatPrice(order.grandTotal)}</td>
+                      <td className="py-3 px-4 font-semibold text-on-surface">{formatPrice(order.grandTotal)}</td>
                       <td className="py-3 px-4">
                         <OrderStatusBadge status={order.status} />
                       </td>
                       <td className="py-3 px-4">
-                        {/* Dropdown only lists statuses reachable from the current one; terminal orders show "Final" instead */}
                         {nextOptions.length > 0 ? (
-                          // key={order.status} forces a fresh, unselected instance whenever the
-                          // status actually changes — otherwise it'd keep showing the just-picked
-                          // label instead of resetting to the "Change status..." placeholder.
                           <Select
                             key={order.status}
                             disabled={updateStatus.isPending}
                             onValueChange={(value) => updateStatus.mutate({ id: order.id, status: value as OrderStatus })}
                           >
-                            <SelectTrigger className="w-auto py-1.5 pr-8 text-xs">
+                            <SelectTrigger className="w-auto py-1 px-3 text-xs rounded-lg">
                               <SelectValue placeholder="Change status..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -140,7 +134,7 @@ export default function AdminOrdersPage() {
                             </SelectContent>
                           </Select>
                         ) : (
-                          <span className="text-xs text-secondary">Final</span>
+                          <span className="text-xs text-secondary font-medium">Final</span>
                         )}
                       </td>
                     </tr>
@@ -151,21 +145,21 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
-        {/* Pagination controls, only shown when there's more than one page */}
+        {/* Pagination controls */}
         {data && data.totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 py-4 border-t border-outline-variant/30">
+          <div className="flex justify-center items-center gap-3 sm:gap-4 py-4 border-t border-outline-variant/30">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="px-4 py-1.5 rounded-full border border-outline text-sm disabled:opacity-40"
+              className="px-4 py-1.5 rounded-full border border-outline-variant text-xs sm:text-sm font-semibold disabled:opacity-40 hover:bg-surface-variant transition-colors cursor-pointer"
             >
               Previous
             </button>
-            <span className="text-sm text-secondary">Page {page + 1} of {data.totalPages}</span>
+            <span className="text-xs sm:text-sm text-secondary font-medium">Page {page + 1} of {data.totalPages}</span>
             <button
               onClick={() => setPage((p) => Math.min(data.totalPages - 1, p + 1))}
               disabled={page >= data.totalPages - 1}
-              className="px-4 py-1.5 rounded-full border border-outline text-sm disabled:opacity-40"
+              className="px-4 py-1.5 rounded-full border border-outline-variant text-xs sm:text-sm font-semibold disabled:opacity-40 hover:bg-surface-variant transition-colors cursor-pointer"
             >
               Next
             </button>

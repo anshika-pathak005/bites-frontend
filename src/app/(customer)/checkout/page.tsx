@@ -123,31 +123,34 @@ function CheckoutPageContent() {
   }
 
   return (
-    <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-stack-lg">
-      <h1 className="font-headline-lg text-headline-lg mb-stack-md">Checkout</h1>
+    <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-stack-md sm:py-stack-lg">
+      <div className="mb-stack-md sm:mb-stack-lg">
+        <span className="text-primary font-label-md text-label-sm sm:text-label-md tracking-widest uppercase block mb-1">FINAL STEP</span>
+        <h1 className="font-headline-lg text-2xl sm:text-headline-lg font-bold text-on-surface">Checkout</h1>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-gutter items-start">
         {/* Delivery details */}
-        <div className="lg:col-span-2 space-y-6 bg-surface-container-lowest rounded-2xl shadow-sm p-6">
-          <h3 className="font-headline-md text-headline-md">Delivery Details</h3>
+        <div className="lg:col-span-2 space-y-5 bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6">
+          <h3 className="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-3">Delivery Details</h3>
 
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Full Name</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Full Name</label>
             <Input {...register("name")} placeholder="Your name" />
             {errors.name && <p className="text-error text-xs mt-1">{errors.name.message}</p>}
           </div>
 
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Phone Number</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Phone Number</label>
             <Input {...register("phone")} placeholder="e.g. 9876543210" />
             {errors.phone && <p className="text-error text-xs mt-1">{errors.phone.message}</p>}
           </div>
 
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Delivery Area</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Delivery Area</label>
             <select
               {...register("deliveryAreaId")}
-              className="w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md outline-none focus:border-primary focus:border-2"
+              className="w-full rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-4 py-3 text-sm sm:text-body-md outline-none focus:border-primary focus:border-2"
               disabled={isLoadingAreas}
             >
               <option value="">Select your area</option>
@@ -161,59 +164,59 @@ function CheckoutPageContent() {
           </div>
 
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Full Address</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Full Address</label>
             <Input {...register("fullAddress")} placeholder="House / street / area" />
             {errors.fullAddress && <p className="text-error text-xs mt-1">{errors.fullAddress.message}</p>}
           </div>
 
           <div>
-            <label className="font-label-md text-label-sm block mb-2">Landmark (optional)</label>
+            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Landmark (optional)</label>
             <Input {...register("landmark")} placeholder="e.g. next to the blue gate" />
           </div>
 
           <div className="pt-2">
-            <p className="font-label-md text-label-sm mb-2">Payment Method</p>
-            <div className="px-4 py-3 rounded-lg border border-outline-variant bg-surface-container text-body-md">
+            <p className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Payment Method</p>
+            <div className="px-4 py-3 rounded-xl border border-outline-variant/60 bg-surface-container text-sm sm:text-body-md font-medium text-on-surface">
               Cash on Delivery
             </div>
           </div>
         </div>
 
         {/* Order summary */}
-        <div className="bg-surface-container-lowest rounded-2xl shadow-sm p-6 space-y-4 sticky top-24">
-          <h3 className="font-headline-md text-headline-md">Order Summary</h3>
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4 lg:sticky lg:top-24">
+          <h3 className="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-3">Order Summary</h3>
 
           {isBuyNowFlow && buyNowItem && (
-            <div className="flex justify-between text-body-md">
+            <div className="flex justify-between text-xs sm:text-body-md">
               <span className="text-secondary">{buyNowItem.name} × {buyNowQuantity}</span>
-              <span>{formatPrice(buyNowItem.price * buyNowQuantity)}</span>
+              <span className="font-semibold text-on-surface">{formatPrice(buyNowItem.price * buyNowQuantity)}</span>
             </div>
           )}
           {!isBuyNowFlow &&
             cartQuery.data?.items.map((item) => (
-              <div key={item.id} className="flex justify-between text-body-md">
+              <div key={item.id} className="flex justify-between text-xs sm:text-body-md">
                 <span className="text-secondary">{item.name} × {item.quantity}</span>
-                {/* <span>{formatPrice(item.subtotal)}</span> */}
+                <span className="font-semibold text-on-surface">{formatPrice(item.unitPrice * item.quantity)}</span>
               </div>
             ))}
 
           <div className="border-t border-outline-variant/30 pt-4 space-y-2">
-            <div className="flex justify-between text-body-md">
+            <div className="flex justify-between text-xs sm:text-body-md">
               <span className="text-secondary">Subtotal</span>
-              <span>{formatPrice(subtotal)}</span>
+              <span className="font-medium text-on-surface">{formatPrice(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-body-md">
+            <div className="flex justify-between text-xs sm:text-body-md">
               <span className="text-secondary">Delivery Charge</span>
-              <span>{selectedArea ? formatPrice(deliveryCharge) : "Select area"}</span>
+              <span className="font-medium text-on-surface">{selectedArea ? formatPrice(deliveryCharge) : "Select area"}</span>
             </div>
-            <div className="flex justify-between text-headline-md font-headline-md pt-2 border-t border-outline-variant/30">
-              <span>Total</span>
-              <span className="text-primary">{formatPrice(grandTotal)}</span>
+            <div className="flex justify-between items-baseline pt-2 border-t border-outline-variant/30">
+              <span className="font-headline-md text-headline-md text-on-surface">Total</span>
+              <span className="font-headline-lg text-headline-lg text-primary font-bold">{formatPrice(grandTotal)}</span>
             </div>
           </div>
 
-          <Button type="submit" size="lg" className="w-full" disabled={placeOrder.isPending}>
-            {placeOrder.isPending ? <Spinner className="w-5 h-5" /> : "Place Order"}
+          <Button type="submit" size="lg" className="w-full text-white font-semibold py-6 rounded-xl" disabled={placeOrder.isPending}>
+            {placeOrder.isPending ? <Spinner className="w-5 h-5 text-white" /> : "Place Order"}
           </Button>
         </div>
       </form>
