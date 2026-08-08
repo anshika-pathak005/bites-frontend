@@ -3,13 +3,26 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { Minus, Plus, Leaf, Star } from "lucide-react";
+import { Minus, Plus, Leaf, Star, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { formatPrice } from "@/lib/utils";
 import { useMenuItem } from "@/features/menu/hooks/use-menu-item";
 import { useCart } from "@/features/cart/hooks/use-cart";
+
+function isValidImageUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("/") || trimmed.startsWith("data:image/")) return true;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 // Single menu item's detail page — shows info, quantity picker, and Add to Cart / Buy Now actions.
 export default function MenuItemDetailPage() {
@@ -18,12 +31,13 @@ export default function MenuItemDetailPage() {
   const { data: item, isLoading, isError } = useMenuItem(itemId);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const [imageError, setImageError] = useState(false);
 
   // Block rendering until the item has loaded
   if (isLoading) {
     return (
       <div className="flex justify-center py-24">
-        <Spinner className="w-8 h-8" />
+        <Spinner className="w-8 h-8 text-primary" />
       </div>
     );
   }
@@ -33,21 +47,32 @@ export default function MenuItemDetailPage() {
   }
 
   function handleBuyNow() {
-    // Buy Now Flow skips the cart entirely — the item + quantity travel to
-    // checkout as query params, and CheckoutPage reads them to build a
-    // buyNow payload instead of a cart-based one.
+    // Buy Now Flow skips the cart entirely — passes item & quantity to checkout
     router.push(`/checkout?buyNowItemId=${item?.id}&quantity=${quantity}`);
   }
+
+  const hasValidImage = !imageError && isValidImageUrl(item.imageUrl);
 
   return (
     <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto py-stack-md sm:py-stack-lg">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter items-start">
         {/* Capped width keeps the image from stretching across the whole grid column on large screens */}
         <div className="relative aspect-square w-full max-w-sm mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-outline-variant/30 bg-surface-container shadow-sm">
-          {item.imageUrl ? (
-            <Image src={item.imageUrl} alt={item.name} fill className="object-cover" priority />
+          {hasValidImage && item.imageUrl ? (
+            <Image
+              src={item.imageUrl.trim()}
+              alt={item.name}
+              fill
+              unoptimized
+              onError={() => setImageError(true)}
+              className="object-cover"
+              priority
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-on-surface-variant">No image</div>
+            <div className="w-full h-full flex flex-col items-center justify-center text-on-surface-variant/50 gap-2">
+              <UtensilsCrossed className="w-10 h-10" />
+              <span className="text-xs">No image</span>
+            </div>
           )}
         </div>
 
@@ -80,7 +105,7 @@ export default function MenuItemDetailPage() {
                 <div className="flex items-center gap-3 bg-surface-container-high rounded-full px-2.5 py-1 border border-outline-variant/30">
                   <button
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface"
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface cursor-pointer"
                     aria-label="Decrease quantity"
                   >
                     <Minus className="w-4 h-4" />
@@ -88,7 +113,7 @@ export default function MenuItemDetailPage() {
                   <span className="w-6 text-center font-label-md font-bold text-on-surface">{quantity}</span>
                   <button
                     onClick={() => setQuantity((q) => q + 1)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface"
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface cursor-pointer"
                     aria-label="Increase quantity"
                   >
                     <Plus className="w-4 h-4" />
@@ -101,13 +126,14 @@ export default function MenuItemDetailPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="w-full sm:w-auto font-semibold"
+                  className="w-full sm:w-auto font-semibold cursor-pointer"
                   onClick={() => addItem.mutate({ menuItemId: item.id, quantity })}
                   disabled={addItem.isPending}
                 >
+                  {addItem.isPending ? <Spinner className="w-4 h-4 mr-2" /> : null}
                   Add to Cart
                 </Button>
-                <Button size="lg" className="w-full sm:w-auto text-white font-semibold" onClick={handleBuyNow}>
+                <Button size="lg" className="w-full sm:w-auto text-white font-semibold cursor-pointer" onClick={handleBuyNow}>
                   Buy Now
                 </Button>
               </div>

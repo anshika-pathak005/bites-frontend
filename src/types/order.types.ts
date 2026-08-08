@@ -18,15 +18,6 @@ export interface OrderItem {
   subtotal: number;
 }
 
-// Customer-provided delivery info collected at checkout.
-export interface DeliveryDetails {
-  name: string;
-  phone: string;
-  deliveryAreaId: string;
-  fullAddress: string;
-  landmark?: string;
-}
-
 // A placed order as returned by the backend (order tracking, admin views).
 export interface Order {
   id: string;
@@ -36,17 +27,28 @@ export interface Order {
   customerName: string;
   customerPhone: string;
   deliveryAddress: string;
+  landmark?: string;
+  pincode?: string;
+  latitude?: number;
+  longitude?: number;
   deliveryCharge: number;
   subtotal: number;
   grandTotal: number;
   placedAt: string;
+  cancellable?: boolean;
+  cancelReason?: string;
 }
 
-// Request body for placing an order via checkout.
+// Request body for placing an order via checkout (cookie-owned guest session).
 export interface CheckoutPayload {
-  delivery: DeliveryDetails;
-  paymentMethod: "COD";
-  // one of the two, depending on cart-flow vs buy-now-flow
-  cartSessionId?: string;
-  buyNow?: { menuItemId: string; quantity: number };
+  name: string;
+  phone: string;
+  fullAddress: string;
+  landmark?: string;
+  pincode: string;
+  latitude: number;
+  longitude: number;
+  // Omit both for Cart Flow; set both for Buy Now Flow
+  buyNowMenuItemId?: string;
+  buyNowQuantity?: number;
 }

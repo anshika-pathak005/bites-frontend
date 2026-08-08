@@ -8,10 +8,9 @@ export interface CartItem {
   quantity: number;
 }
 
-// A customer's cart, scoped to an anonymous browser session (no login required).
+// A customer's cart, scoped to an anonymous HttpOnly guestId cookie (no client sessionId).
 export interface Cart {
   id: string;
-  sessionId: string;
   items: CartItem[];
   subtotal: number;
 }

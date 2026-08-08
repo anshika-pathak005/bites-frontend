@@ -2,211 +2,465 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Package } from "lucide-react";
+import {
+  Search,
+  Package,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RotateCcw,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatPrice, cn } from "@/lib/utils";
-import { useTrackOrder } from "@/features/orders/hooks/use-track-order";
+import {
+  useMyOrders,
+  useTrackOrderMutation,
+  useCancelOrder,
+} from "@/features/orders/hooks/use-track-order";
 import { ORDER_STATUS_LABELS } from "@/constants/order-status";
-import type { OrderStatus } from "@/types/order.types";
+import type { Order, OrderStatus } from "@/types/order.types";
 
-// The order in which stages appear in the visual progress tracker. CANCELLED
-// is handled separately since it isn't a step in the normal forward flow.
-const PROGRESS_STEPS: OrderStatus[] = ["PENDING", "ACCEPTED", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED"];
+const PROGRESS_STEPS: OrderStatus[] = [
+  "PENDING",
+  "ACCEPTED",
+  "PREPARING",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+];
 
-// Next.js requires useSearchParams() to sit inside a Suspense boundary — the
-// actual page content lives in TrackOrderContent below, and this default
-// export just supplies that boundary around it.
 export default function TrackOrderPage() {
   return (
     <Suspense
       fallback={
         <div className="flex justify-center py-24">
-          <Spinner className="w-8 h-8" />
+          <Spinner className="w-8 h-8 text-primary" />
         </div>
       }
     >
-      <TrackOrderContent />
+      <TrackOrderPageContent />
     </Suspense>
   );
 }
 
-// Lets a guest look up their order(s) by order number or phone number.
-function TrackOrderContent() {
+function TrackOrderPageContent() {
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<"orderNumber" | "phone">("orderNumber");
-  const [value, setValue] = useState("");
-  const { mutate, data: orders, isPending, isError } = useTrackOrder();
+  const myOrdersQuery = useMyOrders();
+  const trackOrderMutation = useTrackOrderMutation();
+  const cancelOrderMutation = useCancelOrder();
 
-  // Arriving from the Order Success page's "Track Order" button pre-fills
-  // and auto-searches, so the guest doesn't have to type their own order id.
+  const [searchOrderNumber, setSearchOrderNumber] = useState("");
+  const [trackedOrder, setTrackedOrder] = useState<Order | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
+  const [showSearchBox, setShowSearchBox] = useState(false);
+
+  // If redirected from checkout or query string with ?orderNumber=...
   useEffect(() => {
-    const prefillOrderNumber = searchParams.get("orderNumber");
-    if (prefillOrderNumber) {
-      setValue(prefillOrderNumber);
-      mutate({ mode: "orderNumber", value: prefillOrderNumber });
+    const prefill = searchParams.get("orderNumber");
+    if (prefill) {
+      setSearchOrderNumber(prefill);
+      trackOrderMutation.mutate(prefill.trim(), {
+        onSuccess: (order) => {
+          if (order) {
+            setTrackedOrder(order);
+            setHasSearched(true);
+          }
+        },
+      });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // Manual search submit — trims whitespace and skips empty queries
-  function handleSubmit(e: React.FormEvent) {
+  // Handle manual order search
+  function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (value.trim()) {
-      mutate({ mode, value: value.trim() });
-    }
+    const query = searchOrderNumber.trim();
+    if (!query) return;
+
+    trackOrderMutation.mutate(query, {
+      onSuccess: (order) => {
+        setTrackedOrder(order ?? null);
+        setHasSearched(true);
+      },
+    });
   }
 
+  // Handle cancel order execution
+  function handleConfirmCancel() {
+    if (!cancellingOrder) return;
+    cancelOrderMutation.mutate(cancellingOrder.orderNumber, {
+      onSettled: () => {
+        setCancellingOrder(null);
+        // If the currently viewed single tracked order was cancelled, re-track it
+        if (trackedOrder && trackedOrder.orderNumber === cancellingOrder.orderNumber) {
+          trackOrderMutation.mutate(cancellingOrder.orderNumber, {
+            onSuccess: (updated) => setTrackedOrder(updated ?? null),
+          });
+        }
+      },
+    });
+  }
+
+  if (myOrdersQuery.isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-3">
+        <Spinner className="w-8 h-8 text-primary" />
+        <p className="text-xs text-secondary font-medium">Loading your orders...</p>
+      </div>
+    );
+  }
+
+  const myOrders = myOrdersQuery.data ?? [];
+  const hasMyOrders = myOrders.length > 0;
+
   return (
-    <div className="px-margin-mobile md:px-margin-desktop max-w-2xl mx-auto py-stack-md sm:py-stack-lg">
+    <div className="px-margin-mobile md:px-margin-desktop max-w-3xl mx-auto py-stack-md sm:py-stack-lg">
+      {/* Header */}
       <div className="text-center mb-stack-md sm:mb-stack-lg">
-        <span className="text-primary font-label-md text-label-sm sm:text-label-md tracking-widest uppercase block mb-1">LIVE STATUS</span>
-        <h1 className="font-headline-lg text-2xl sm:text-headline-lg font-bold text-on-surface">Track Your Order</h1>
+        <span className="text-primary font-label-md text-label-sm sm:text-label-md tracking-widest uppercase block mb-1">
+          LIVE STATUS
+        </span>
+        <h1 className="font-headline-lg text-2xl sm:text-headline-lg font-bold text-on-surface">
+          Track Your Orders
+        </h1>
         <p className="text-secondary text-sm sm:text-body-md mt-1">
-          Look up your order status using your Order ID or phone number.
+          {hasMyOrders
+            ? "Your active and recent orders on this device are displayed below."
+            : "Look up your order status instantly using your Order ID."}
         </p>
       </div>
 
-      <div className="flex justify-center gap-2 sm:gap-3 mb-stack-md">
-        <ModeTab
-          label="Order ID"
-          active={mode === "orderNumber"}
-          onClick={() => setMode("orderNumber")}
-        />
-        <ModeTab
-          label="Phone Number"
-          active={mode === "phone"}
-          onClick={() => setMode("phone")}
-        />
-      </div>
-
-      <form onSubmit={handleSubmit} className="flex gap-2 sm:gap-3 mb-stack-lg">
-        <div className="relative flex-grow">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
-          <Input
-            className="pl-11 py-2.5 sm:py-3 text-sm sm:text-body-md rounded-xl"
-            placeholder={
-              mode === "orderNumber" ? "e.g. ORD-7K4QX9P2" : "e.g. 9876543210"
-            }
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
-        </div>
-        <Button type="submit" size="md" className="text-white font-semibold px-5 sm:px-6" disabled={isPending}>
-          {isPending ? <Spinner className="w-4 h-4" /> : "Track"}
-        </Button>
-      </form>
-
-      {isError && (
-        <p className="text-center text-secondary py-8">
-          Something went wrong. Please try again.
-        </p>
-      )}
-
-      {orders && orders.length === 0 && (
-        <div className="flex flex-col items-center gap-3 py-12 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-8 shadow-sm">
-          <Package className="w-10 h-10 text-on-surface-variant" />
-          <p className="text-secondary text-body-md">No orders found matching your search.</p>
-        </div>
-      )}
-
-      <div className="space-y-4 sm:space-y-6">
-        {orders?.map((order) => (
-          <div
-            key={order.id}
-            className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4 hover:shadow-md transition-all"
+      {/* Cross-device / Manual Lookup Panel */}
+      {hasMyOrders ? (
+        <div className="mb-stack-md bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-4 shadow-xs">
+          <button
+            type="button"
+            onClick={() => setShowSearchBox((prev) => !prev)}
+            className="w-full flex items-center justify-between text-xs sm:text-sm font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer"
           >
-            <div className="flex justify-between items-start gap-2 border-b border-outline-variant/30 pb-3">
-              <div>
-                <p className="text-[11px] text-secondary uppercase tracking-widest font-semibold">
-                  Order ID
-                </p>
-                <p className="font-headline-md text-lg sm:text-headline-md text-primary font-bold">
-                  {order.orderNumber}
-                </p>
+            <span className="flex items-center gap-2">
+              <Search className="w-4 h-4" />
+              Track an order from another device or browser
+            </span>
+            {showSearchBox ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {showSearchBox && (
+            <form onSubmit={handleSearchSubmit} className="flex gap-2.5 mt-3 pt-3 border-t border-outline-variant/30">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+                <Input
+                  className="pl-10 py-2 text-xs sm:text-sm rounded-xl"
+                  placeholder="Enter Order ID (e.g. ORD-12345)"
+                  value={searchOrderNumber}
+                  onChange={(e) => setSearchOrderNumber(e.target.value)}
+                />
               </div>
-              <div className="text-right">
-                <span className="text-xs text-secondary block">Total Amount</span>
-                <span className="text-lg sm:text-headline-md font-bold text-on-surface">
-                  {formatPrice(order.grandTotal)}
-                </span>
-              </div>
+              <Button
+                type="submit"
+                size="sm"
+                className="text-white font-semibold rounded-xl px-5"
+                disabled={trackOrderMutation.isPending}
+              >
+                {trackOrderMutation.isPending ? <Spinner className="w-3.5 h-3.5" /> : "Track"}
+              </Button>
+            </form>
+          )}
+        </div>
+      ) : (
+        /* Empty State: Search Input shown prominently */
+        <form onSubmit={handleSearchSubmit} className="flex gap-2.5 sm:gap-3 mb-stack-lg max-w-xl mx-auto">
+          <div className="relative flex-grow">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+            <Input
+              className="pl-11 py-3 text-sm sm:text-body-md rounded-xl shadow-xs"
+              placeholder="Enter your Order ID (e.g. ORD-987654)"
+              value={searchOrderNumber}
+              onChange={(e) => setSearchOrderNumber(e.target.value)}
+            />
+          </div>
+          <Button
+            type="submit"
+            size="md"
+            className="text-white font-semibold px-6 sm:px-8 rounded-xl shadow-xs"
+            disabled={trackOrderMutation.isPending}
+          >
+            {trackOrderMutation.isPending ? <Spinner className="w-4 h-4" /> : "Track Order"}
+          </Button>
+        </form>
+      )}
+
+      {/* Display Single Tracked Order if searched */}
+      {hasSearched && (
+        <div className="mb-stack-lg">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-secondary">
+              Search Result
+            </h3>
+            <button
+              onClick={() => {
+                setHasSearched(false);
+                setTrackedOrder(null);
+              }}
+              className="text-xs text-secondary hover:text-primary transition-colors cursor-pointer"
+            >
+              Clear
+            </button>
+          </div>
+
+          {trackedOrder ? (
+            <OrderTrackingCard
+              order={trackedOrder}
+              onCancelClick={(order) => setCancellingOrder(order)}
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-10 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-6 shadow-sm">
+              <Package className="w-8 h-8 text-on-surface-variant/50" />
+              <p className="text-secondary text-sm font-medium">
+                No order found matching Order ID &ldquo;{searchOrderNumber}&rdquo;.
+              </p>
+              <p className="text-xs text-secondary/80">
+                Please double-check the Order ID from your confirmation screen.
+              </p>
             </div>
+          )}
+        </div>
+      )}
 
-            {/* Cancelled orders skip the progress tracker entirely */}
-            {order.status === "CANCELLED" ? (
-              <div className="px-4 py-3 rounded-xl bg-error-container text-on-error-container text-xs sm:text-sm font-semibold">
-                This order was cancelled.
-              </div>
-            ) : (
-              <div className="flex items-center justify-between py-2 overflow-x-auto border-b border-outline-variant/30 pb-4">
-                {PROGRESS_STEPS.map((step, index) => {
-                  // A step is "done" if it's at or before the order's current status
-                  const currentIndex = PROGRESS_STEPS.indexOf(order.status);
-                  const isDone = index <= currentIndex;
-                  return (
-                    <div
-                      key={step}
-                      className="flex-1 flex flex-col items-center relative min-w-[55px]"
-                    >
-                      {index > 0 && (
-                        <div
-                          className={cn(
-                            "absolute top-2.5 sm:top-3 right-1/2 w-full h-0.5",
-                            isDone ? "bg-primary" : "bg-outline-variant/60",
-                          )}
-                        />
-                      )}
-                      <div
-                        className={cn(
-                          "w-5 h-5 sm:w-6 sm:h-6 rounded-full z-10 border-2 transition-colors",
-                          isDone
-                            ? "bg-primary border-primary"
-                            : "bg-surface-container-lowest border-outline-variant",
-                        )}
-                      />
-                      <span className="text-[9px] sm:text-[10px] text-center mt-1.5 text-secondary font-medium leading-tight">
-                        {ORDER_STATUS_LABELS[step]}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+      {/* List of Cookie-Owned Orders (Same Device Automatic Experience) */}
+      {hasMyOrders ? (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+            <h2 className="text-sm sm:text-base font-bold text-on-surface">
+              Recent Orders ({myOrders.length})
+            </h2>
+            <button
+              onClick={() => myOrdersQuery.refetch()}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-secondary hover:text-primary transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Refresh
+            </button>
+          </div>
 
-            {/* Order Items Breakdown */}
-            <div className="space-y-1.5 pt-1">
-              <p className="text-xs text-secondary font-semibold uppercase tracking-wider mb-2">Ordered Items</p>
-              {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center text-xs sm:text-sm text-secondary">
-                  <span>
-                    {item.itemName} × {item.quantity}
-                  </span>
-                  <span className="font-semibold text-on-surface">
-                    {formatPrice(item.subtotal)}
-                  </span>
-                </div>
-              ))}
+          <div className="space-y-4 sm:space-y-6">
+            {myOrders.map((order) => (
+              <OrderTrackingCard
+                key={order.id || order.orderNumber}
+                order={order}
+                onCancelClick={(ord) => setCancellingOrder(ord)}
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        !hasSearched && (
+          <div className="flex flex-col items-center gap-4 py-16 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-8 shadow-sm max-w-lg mx-auto">
+            <div className="w-14 h-14 rounded-full bg-primary-fixed/40 text-primary flex items-center justify-center">
+              <Package className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface">
+                No Active Orders on this Device
+              </h3>
+              <p className="text-secondary text-xs sm:text-sm mt-1 max-w-sm">
+                If you recently placed an order on a different device or cleared your cookies, enter your Order ID above to track it live.
+              </p>
             </div>
           </div>
-        ))}
-      </div>
+        )
+      )}
+
+      {/* Confirmation Dialog for Order Cancellation */}
+      <ConfirmDialog
+        open={!!cancellingOrder}
+        title="Cancel Order?"
+        message={`Are you sure you want to cancel order #${cancellingOrder?.orderNumber}? This action cannot be undone.`}
+        confirmLabel="Yes, Cancel Order"
+        cancelLabel="Keep Order"
+        isLoading={cancelOrderMutation.isPending}
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setCancellingOrder(null)}
+      />
     </div>
   );
 }
 
-// Toggle button for switching between order-number and phone lookup modes
-function ModeTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+// Reusable Order Card with visual status progress and instant Cancel button
+function OrderTrackingCard({
+  order,
+  onCancelClick,
+}: {
+  order: Order;
+  onCancelClick: (order: Order) => void;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  function copyOrderNumber() {
+    navigator.clipboard.writeText(order.orderNumber);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  const isCancelled = order.status === "CANCELLED";
+  const isDelivered = order.status === "DELIVERED";
+
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "px-4 py-2 sm:px-5 sm:py-2 rounded-full text-xs sm:text-label-md font-semibold transition-all duration-200 cursor-pointer select-none",
-        active ? "bg-primary text-white shadow-sm" : "bg-surface-container-high text-on-surface hover:bg-primary-fixed hover:text-on-primary-fixed-variant"
+    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4 hover:shadow-md transition-all duration-200">
+      {/* Top Header: Order Number, Date, Status, and Cancel Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-outline-variant/30 pb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-secondary uppercase tracking-widest font-semibold">
+              Order ID
+            </span>
+            <button
+              onClick={copyOrderNumber}
+              className="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors cursor-pointer"
+              title="Copy Order ID"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+          <p className="font-headline-md text-base sm:text-headline-md text-primary font-bold">
+            {order.orderNumber}
+          </p>
+          {order.placedAt && (
+            <p className="text-[11px] text-secondary mt-0.5">
+              Placed on {new Date(order.placedAt).toLocaleString()}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 self-start sm:self-center">
+          {/* Status Badge */}
+          <span
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
+              isCancelled
+                ? "bg-error-container text-on-error-container"
+                : isDelivered
+                ? "bg-green-100 text-green-800"
+                : "bg-primary-fixed text-on-primary-fixed-variant"
+            )}
+          >
+            {ORDER_STATUS_LABELS[order.status] || order.status}
+          </span>
+
+          {/* Cancel button: displayed when backend flag cancellable === true */}
+          {order.cancellable && !isCancelled && !isDelivered && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onCancelClick(order)}
+              className="text-error border-error/40 hover:bg-error-container/20 hover:border-error rounded-full text-xs font-semibold px-3 py-1 h-auto"
+            >
+              Cancel Order
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Visual Status Progress Tracker */}
+      {isCancelled ? (
+        <div className="px-4 py-3 rounded-xl bg-error-container/60 border border-error/20 text-on-error-container text-xs sm:text-sm font-semibold flex items-center gap-2">
+          <XCircle className="w-4 h-4 shrink-0 text-error" />
+          <span>This order was cancelled.</span>
+          {order.cancelReason && <span className="font-normal text-secondary">({order.cancelReason})</span>}
+        </div>
+      ) : (
+        <div className="py-2 border-b border-outline-variant/30 pb-5">
+          <div className="flex items-center justify-between overflow-x-auto">
+            {PROGRESS_STEPS.map((step, index) => {
+              const currentIndex = PROGRESS_STEPS.indexOf(order.status);
+              const isDone = index <= currentIndex;
+              const isCurrent = index === currentIndex;
+
+              return (
+                <div key={step} className="flex-1 flex flex-col items-center relative min-w-[65px]">
+                  {index > 0 && (
+                    <div
+                      className={cn(
+                        "absolute top-2.5 sm:top-3 right-1/2 w-full h-0.5 transition-colors",
+                        isDone ? "bg-primary" : "bg-outline-variant/60"
+                      )}
+                    />
+                  )}
+                  <div
+                    className={cn(
+                      "w-5 h-5 sm:w-6 sm:h-6 rounded-full z-10 border-2 transition-all flex items-center justify-center",
+                      isDone
+                        ? "bg-primary border-primary text-white"
+                        : "bg-surface-container-lowest border-outline-variant",
+                      isCurrent && "ring-4 ring-primary/20 scale-110"
+                    )}
+                  >
+                    {isDone && <CheckCircle2 className="w-3.5 h-3.5" />}
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[9px] sm:text-[10px] text-center mt-1.5 font-medium leading-tight",
+                      isDone ? "text-primary font-bold" : "text-secondary"
+                    )}
+                  >
+                    {ORDER_STATUS_LABELS[step]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
-    >
-      {label}
-    </button>
+
+      {/* Ordered Items Breakdown */}
+      <div className="space-y-2 pt-1">
+        <p className="text-xs text-secondary font-semibold uppercase tracking-wider">
+          Ordered Items
+        </p>
+        <div className="divide-y divide-outline-variant/20">
+          {order.items?.map((item) => (
+            <div key={item.id} className="flex justify-between items-center py-1.5 text-xs sm:text-sm">
+              <span className="text-on-surface font-medium">
+                {item.itemName} <span className="text-secondary font-normal">× {item.quantity}</span>
+              </span>
+              <span className="font-semibold text-on-surface">
+                {formatPrice(item.subtotal)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Delivery Info & Grand Total Footer */}
+      <div className="border-t border-outline-variant/30 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm">
+        <div className="text-secondary max-w-sm">
+          <p className="font-medium text-on-surface">
+            Delivery to: {order.customerName} {order.customerPhone ? `(${order.customerPhone})` : ""}
+          </p>
+          {order.deliveryAddress && (
+            <p className="text-secondary text-[11px] sm:text-xs mt-0.5 line-clamp-1">
+              {order.deliveryAddress}
+              {order.landmark ? ` • Near ${order.landmark}` : ""}
+              {order.pincode ? ` • ${order.pincode}` : ""}
+            </p>
+          )}
+        </div>
+
+        <div className="text-right sm:text-right">
+          <span className="text-xs text-secondary block">Total Paid (COD)</span>
+          <span className="text-base sm:text-lg font-bold text-primary">
+            {formatPrice(order.grandTotal)}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -15,12 +15,19 @@ export const queryKeys = {
     all: ["delivery-areas"] as const,
   },
   cart: {
-    // Keyed by session id since carts are anonymous/session-scoped, not user-scoped.
-    detail: (sessionId: string) => ["cart", sessionId] as const,
+    // Cookie-backed guest cart session (no client sessionId parameter needed).
+    all: ["cart"] as const,
+    detail: () => ["cart"] as const,
+  },
+  addresses: {
+    all: ["addresses"] as const,
+  },
+  deliveryPricing: {
+    quote: (lat?: number, lon?: number) => ["delivery-pricing", "quote", lat, lon] as const,
   },
   orders: {
-    // Keyed by the customer's lookup query (e.g. order number/phone).
-    track: (query: string) => ["orders", "track", query] as const,
+    myOrders: ["orders", "my-orders"] as const,
+    track: (orderNumber: string) => ["orders", "track", orderNumber] as const,
   },
   admin: {
     dashboard: ["admin", "dashboard"] as const,

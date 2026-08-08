@@ -12,6 +12,19 @@ import { useCart } from "@/features/cart/hooks/use-cart";
 import { ROUTES } from "@/constants/routes";
 import type { CartItem } from "@/types/cart.types";
 
+function isValidImageUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("/") || trimmed.startsWith("data:image/")) return true;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // Guest shopping cart page — lists items, lets the guest adjust quantity/remove with confirmation, and links to checkout.
 export default function CartPage() {
   const { cartQuery, updateQuantity, removeItem } = useCart();
@@ -22,6 +35,7 @@ export default function CartPage() {
   // State for clearing the entire cart dialog confirmation
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   // Block rendering until the cart session has loaded
   if (cartQuery.isLoading) {
@@ -69,7 +83,7 @@ export default function CartPage() {
         {!isEmpty && (
           <div className="flex items-center gap-3 self-end sm:self-auto">
             <Link href={ROUTES.menu}>
-              <Button variant="outline" size="sm" className="hidden sm:inline-flex items-center gap-1.5 rounded-full text-xs font-medium">
+              <Button variant="outline" size="sm" className="hidden sm:inline-flex items-center gap-1.5 rounded-full text-xs font-medium cursor-pointer">
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Continue Shopping
               </Button>
@@ -78,7 +92,7 @@ export default function CartPage() {
               variant="ghost"
               size="sm"
               onClick={() => setShowClearConfirm(true)}
-              className="text-error hover:text-error hover:bg-error-container/20 text-xs sm:text-sm rounded-full"
+              className="text-error hover:text-error hover:bg-error-container/20 text-xs sm:text-sm rounded-full cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5 mr-1.5" />
               Clear Cart
@@ -98,7 +112,7 @@ export default function CartPage() {
           </p>
           <div className="pt-2">
             <Link href={ROUTES.menu}>
-              <Button size="lg" className="rounded-full px-8 gap-2 font-semibold">
+              <Button size="lg" className="rounded-full px-8 gap-2 font-semibold cursor-pointer text-white">
                 Browse Our Menu
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -109,49 +123,95 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter items-start">
           {/* Line items list */}
           <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-            {cart.items.map((item) => (
-              <div
-                key={item.id}
-                className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-3.5 sm:p-4 shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                  {/* Product Image */}
-                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-surface-container shrink-0 border border-outline-variant/20">
-                    {item.imageUrl ? (
-                      <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-on-surface-variant/40">
-                        <ShoppingBag className="w-8 h-8" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Main Product Info & Controls */}
-                  <div className="flex-grow min-w-0 pr-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="font-label-md text-body-md sm:text-label-md font-semibold text-on-surface line-clamp-2 sm:truncate">
-                          {item.name}
-                        </h4>
-                        <p className="text-secondary text-xs sm:text-body-md mt-0.5">
-                          {formatPrice(item.unitPrice)} each
-                        </p>
-                      </div>
-
-                      {/* Trash Button - Mobile View (Top Right) */}
-                      <button
-                        onClick={() => setDeleteTarget(item)}
-                        className="sm:hidden text-on-surface-variant/70 hover:text-error transition-colors p-1.5 -mr-1 -mt-1 rounded-lg hover:bg-error-container/20"
-                        aria-label="Remove item"
-                      >
-                        <Trash2 className="w-4 h-4 text-error" />
-                      </button>
+            {cart.items.map((item) => {
+              const hasValidImg = !failedImages[item.id] && isValidImageUrl(item.imageUrl);
+              return (
+                <div
+                  key={item.id}
+                  className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-3.5 sm:p-4 shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                    {/* Product Image */}
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-surface-container shrink-0 border border-outline-variant/20">
+                      {hasValidImg && item.imageUrl ? (
+                        <Image
+                          src={item.imageUrl.trim()}
+                          alt={item.name}
+                          fill
+                          unoptimized
+                          onError={() => setFailedImages((prev) => ({ ...prev, [item.id]: true }))}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-on-surface-variant/40">
+                          <ShoppingBag className="w-8 h-8" />
+                        </div>
+                      )}
                     </div>
 
-                    {/* Mobile Stepper & Subtotal Row */}
-                    <div className="flex sm:hidden items-center justify-between gap-2 mt-3 pt-2.5 border-t border-outline-variant/20">
+                    {/* Main Product Info & Controls */}
+                    <div className="flex-grow min-w-0 pr-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-label-md text-body-md sm:text-label-md font-semibold text-on-surface line-clamp-2 sm:truncate">
+                            {item.name}
+                          </h4>
+                          <p className="text-secondary text-xs sm:text-body-md mt-0.5">
+                            {formatPrice(item.unitPrice)} each
+                          </p>
+                        </div>
+
+                        {/* Trash Button - Mobile View (Top Right) */}
+                        <button
+                          onClick={() => setDeleteTarget(item)}
+                          className="sm:hidden text-on-surface-variant/70 hover:text-error transition-colors p-1.5 -mr-1 -mt-1 rounded-lg hover:bg-error-container/20 cursor-pointer"
+                          aria-label="Remove item"
+                        >
+                          <Trash2 className="w-4 h-4 text-error" />
+                        </button>
+                      </div>
+
+                      {/* Mobile Stepper & Subtotal Row */}
+                      <div className="flex sm:hidden items-center justify-between gap-2 mt-3 pt-2.5 border-t border-outline-variant/20">
+                        {/* Quantity Stepper */}
+                        <div className="flex items-center gap-1 bg-surface-container-high rounded-full p-1 border border-outline-variant/30">
+                          <button
+                            onClick={() => {
+                              if (item.quantity === 1) {
+                                setDeleteTarget(item);
+                              } else {
+                                updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity - 1 });
+                              }
+                            }}
+                            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface cursor-pointer"
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="w-6 text-center text-xs font-bold text-on-surface">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity + 1 })}
+                            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface cursor-pointer"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Item Total */}
+                        <div className="text-right">
+                          <span className="text-[11px] text-secondary block leading-none">Total</span>
+                          <span className="text-primary font-bold text-sm">
+                            {formatPrice(item.unitPrice * item.quantity)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Desktop / Tablet Stepper, Subtotal, and Delete Button */}
+                    <div className="hidden sm:flex items-center gap-5 shrink-0 ml-auto">
                       {/* Quantity Stepper */}
-                      <div className="flex items-center gap-1 bg-surface-container-high rounded-full p-1 border border-outline-variant/30">
+                      <div className="flex items-center gap-2 bg-surface-container-high rounded-full px-2.5 py-1 border border-outline-variant/30">
                         <button
                           onClick={() => {
                             if (item.quantity === 1) {
@@ -160,78 +220,42 @@ export default function CartPage() {
                               updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity - 1 });
                             }
                           }}
-                          className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface"
+                          className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface cursor-pointer"
                           aria-label="Decrease quantity"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="w-6 text-center text-xs font-bold text-on-surface">{item.quantity}</span>
+                        <span className="w-6 text-center text-sm font-bold text-on-surface">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity + 1 })}
-                          className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface"
+                          className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface cursor-pointer"
                           aria-label="Increase quantity"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
-                      {/* Item Total */}
-                      <div className="text-right">
-                        <span className="text-[11px] text-secondary block leading-none">Total</span>
-                        <span className="text-primary font-bold text-sm">
+                      {/* Item Total Price */}
+                      <div className="w-24 text-right">
+                        <span className="text-xs text-secondary block leading-none">Total</span>
+                        <span className="text-primary font-bold text-base">
                           {formatPrice(item.unitPrice * item.quantity)}
                         </span>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Desktop / Tablet Stepper, Subtotal, and Delete Button */}
-                  <div className="hidden sm:flex items-center gap-5 shrink-0 ml-auto">
-                    {/* Quantity Stepper */}
-                    <div className="flex items-center gap-2 bg-surface-container-high rounded-full px-2.5 py-1 border border-outline-variant/30">
+                      {/* Delete button */}
                       <button
-                        onClick={() => {
-                          if (item.quantity === 1) {
-                            setDeleteTarget(item);
-                          } else {
-                            updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity - 1 });
-                          }
-                        }}
-                        className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface"
-                        aria-label="Decrease quantity"
+                        onClick={() => setDeleteTarget(item)}
+                        className="text-on-surface-variant hover:text-error transition-colors p-2 rounded-xl hover:bg-error-container/20 cursor-pointer"
+                        aria-label="Remove item"
                       >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="w-6 text-center text-sm font-bold text-on-surface">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity + 1 })}
-                        className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-lowest transition-colors active:scale-95 text-on-surface"
-                        aria-label="Increase quantity"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-
-                    {/* Item Total Price */}
-                    <div className="w-24 text-right">
-                      <span className="text-xs text-secondary block leading-none">Total</span>
-                      <span className="text-primary font-bold text-base">
-                        {formatPrice(item.unitPrice * item.quantity)}
-                      </span>
-                    </div>
-
-                    {/* Delete button */}
-                    <button
-                      onClick={() => setDeleteTarget(item)}
-                      className="text-on-surface-variant hover:text-error transition-colors p-2 rounded-xl hover:bg-error-container/20"
-                      aria-label="Remove item"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Order Summary Panel */}
@@ -245,12 +269,6 @@ export default function CartPage() {
                 <span>Items ({itemCount})</span>
                 <span className="font-medium text-on-surface">{formatPrice(cart.subtotal)}</span>
               </div>
-              <div className="flex justify-between items-center text-secondary text-sm">
-                <span>Delivery Charge</span>
-                <span className="text-xs bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">
-                  Calculated at checkout
-                </span>
-              </div>
             </div>
 
             <div className="border-t border-outline-variant/30 pt-4 space-y-1">
@@ -260,12 +278,12 @@ export default function CartPage() {
                   {formatPrice(cart.subtotal)}
                 </span>
               </div>
-              <p className="text-xs text-secondary">Taxes and delivery charges calculated during checkout.</p>
+              <p className="text-xs text-secondary">Delivery details will be collected at checkout.</p>
             </div>
 
             <div className="pt-2 space-y-3">
               <Link href={ROUTES.checkout} className="block w-full">
-                <Button size="lg" className="w-full text-body-md font-semibold gap-2 py-6 rounded-xl text-white">
+                <Button size="lg" className="w-full text-body-md font-semibold gap-2 py-6 rounded-xl text-white cursor-pointer">
                   Proceed to Checkout
                   <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -287,7 +305,7 @@ export default function CartPage() {
               <span className="text-primary font-bold text-xl">{formatPrice(cart.subtotal)}</span>
             </div>
             <Link href={ROUTES.checkout} className="flex-1 max-w-[200px]">
-              <Button size="lg" className="w-full text-sm font-semibold gap-1.5 py-5 rounded-xl shadow-md text-white">
+              <Button size="lg" className="w-full text-sm font-semibold gap-1.5 py-5 rounded-xl shadow-md text-white cursor-pointer">
                 Checkout
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -328,4 +346,3 @@ export default function CartPage() {
     </div>
   );
 }
-

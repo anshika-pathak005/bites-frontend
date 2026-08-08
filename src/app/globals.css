@@ -6,4 +6,108 @@
   body {
     @apply bg-surface text-on-surface font-body-md;
   }
+
+  /* Custom sleek scrollbar matching the Bites theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #d4c4ae;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #7b5800;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d4c4ae transparent;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar utility for modals, popups, and scrollable panels */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f5f3f3;
+    border-radius: 9999px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d4c4ae;
+    border-radius: 9999px;
+    border: 1px solid #f5f3f3;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #7b5800;
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #d4c4ae #f5f3f3;
+  }
+
+  /* Dynamic celebratory animations for order confirmation and interactive UI */
+  @keyframes success-pop {
+    0% {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.15);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.95);
+      opacity: 0.8;
+    }
+    70% {
+      transform: scale(1.35);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1.4);
+      opacity: 0;
+    }
+  }
+
+  @keyframes float-gentle {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+
+  .animate-success-pop {
+    animation: success-pop 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  .animate-pulse-ring {
+    animation: pulse-ring 2.2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  }
+
+  .animate-float {
+    animation: float-gentle 3.5s ease-in-out infinite;
+  }
 }
