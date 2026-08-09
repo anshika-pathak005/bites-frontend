@@ -10,8 +10,8 @@ export type OrderStatus =
 
 // A line item snapshot on a placed order (price/name captured at order time).
 export interface OrderItem {
-  id: string;
-  menuItemId: string;
+  id: string | number;
+  menuItemId: string | number;
   itemName: string;
   itemPrice: number;
   quantity: number;
@@ -20,7 +20,7 @@ export interface OrderItem {
 
 // A placed order as returned by the backend (order tracking, admin views).
 export interface Order {
-  id: string;
+  id: string | number;
   orderNumber: string;
   status: OrderStatus;
   items: OrderItem[];
@@ -31,9 +31,12 @@ export interface Order {
   pincode?: string;
   latitude?: number;
   longitude?: number;
+  distanceKm?: number;
   deliveryCharge: number;
   subtotal: number;
   grandTotal: number;
+  paymentMethod?: string;
+  paymentStatus?: string;
   placedAt: string;
   cancellable?: boolean;
   cancelReason?: string;

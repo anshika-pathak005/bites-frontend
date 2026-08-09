@@ -10,6 +10,7 @@ interface ConfirmDialogProps {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  confirmVariant?: "primary" | "destructive" | "default" | "secondary" | "outline";
   isLoading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -24,6 +25,7 @@ export function ConfirmDialog({
   message,
   confirmLabel = "Delete",
   cancelLabel = "Cancel",
+  confirmVariant = "destructive",
   isLoading,
   onConfirm,
   onCancel,
@@ -47,7 +49,7 @@ export function ConfirmDialog({
             <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isLoading} className="font-semibold">
               {cancelLabel}
             </Button>
-            <Button type="button" variant="destructive" size="sm" onClick={onConfirm} disabled={isLoading} className="text-white font-semibold">
+            <Button type="button" variant={confirmVariant} size="sm" onClick={onConfirm} disabled={isLoading} className="text-white font-semibold">
               {isLoading ? "Please wait..." : confirmLabel}
             </Button>
           </div>

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useCategories } from "@/features/menu/hooks/use-categories";
 import { useMenuItems } from "@/features/menu/hooks/use-menu-items";
 import { MenuItemCard } from "@/features/menu/components/menu-item-card";
+import { useDebounce } from "@/hooks/use-debounce";
 import type { MenuItemFilters } from "@/types/menu.types";
 
 const PAGE_SIZE = 12;
@@ -43,7 +44,14 @@ function MenuPageContent() {
   const [todaysSpecialOnly, setTodaysSpecialOnly] = useState(false);
   const [page, setPage] = useState(0);
 
+  const debouncedSearch = useDebounce(search, 400);
+
   const { data: categories } = useCategories();
+
+  // Reset to page 0 whenever debounced search input changes
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
 
   // Re-syncs the selected category if the user (re-)arrives via a `?category=`
   // link while this page is already mounted — client-side nav doesn't remount it.
@@ -56,7 +64,7 @@ function MenuPageContent() {
   // Combined filter object sent to the menu items query
   const filters: MenuItemFilters = {
     categoryId: activeCategoryId,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     vegOnly: vegOnly || undefined,
     bestSellerOnly: bestSellerOnly || undefined,
     todaysSpecialOnly: todaysSpecialOnly || undefined,
@@ -91,7 +99,7 @@ function MenuPageContent() {
           placeholder="Search dishes..."
           className="pl-11 py-2.5 sm:py-3 text-sm sm:text-body-md rounded-xl"
           value={search}
-          onChange={(e) => updateFilter(() => setSearch(e.target.value))}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 

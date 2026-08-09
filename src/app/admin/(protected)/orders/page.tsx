@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -9,6 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { OrderStatusBadge } from "@/components/ui/order-status-badge";
 import { formatPrice } from "@/lib/utils";
 import { useAdminOrders, useUpdateOrderStatus } from "@/features/admin/orders/hooks/use-admin-orders";
+import { useDebounce } from "@/hooks/use-debounce";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TRANSITIONS } from "@/constants/order-status";
 import { ROUTES } from "@/constants/routes";
 import type { OrderStatus } from "@/types/order.types";
@@ -18,15 +20,23 @@ const ALL_STATUSES: OrderStatus[] = ["PENDING", "ACCEPTED", "PREPARING", "OUT_FO
 
 // Admin page listing all orders with search, status filter, pagination, and inline status updates.
 export default function AdminOrdersPage() {
+  const router = useRouter();
   // "ALL" is a sentinel meaning no status filter — Radix's Select.Item can't
   // take an empty-string value (it's reserved internally for "no selection").
   const [status, setStatus] = useState<OrderStatus | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
 
+  const debouncedSearch = useDebounce(search, 400);
+
+  // Reset to page 0 whenever debounced search input changes
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
+
   const { data, isLoading, isError } = useAdminOrders({
     status: status !== "ALL" ? status : undefined,
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     page,
     pageSize: 15,
   });
@@ -48,10 +58,7 @@ export default function AdminOrdersPage() {
             placeholder="Search by order # or phone"
             className="pl-9 text-xs sm:text-sm py-2 rounded-xl"
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(0);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <Select
@@ -89,7 +96,7 @@ export default function AdminOrdersPage() {
         {/* Order list table with an inline status-change dropdown per row */}
         {data && data.items.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full text-xs sm:text-sm">
+            <table className="w-full text-xs sm:text-sm min-w-[550px]">
               <thead>
                 <tr className="text-left text-secondary bg-surface-container-low border-b border-outline-variant/30 font-semibold">
                   <th className="py-3 px-4">Order ID</th>
@@ -103,7 +110,11 @@ export default function AdminOrdersPage() {
                 {data.items.map((order) => {
                   const nextOptions = ORDER_STATUS_TRANSITIONS[order.status];
                   return (
-                    <tr key={order.id} className="border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low/50 transition-colors">
+                    <tr
+                      key={order.id}
+                      onClick={() => router.push(`${ROUTES.admin.orders}/${order.id}`)}
+                      className="border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low/70 transition-colors cursor-pointer"
+                    >
                       <td className="py-3 px-4 font-semibold text-primary">
                         <Link href={`${ROUTES.admin.orders}/${order.id}`} className="hover:underline">
                           {order.orderNumber}
@@ -113,18 +124,18 @@ export default function AdminOrdersPage() {
                         <div className="font-medium text-on-surface">{order.customerName}</div>
                         <div className="text-xs text-secondary">{order.customerPhone}</div>
                       </td>
-                      <td className="py-3 px-4 font-semibold text-on-surface">{formatPrice(order.grandTotal)}</td>
+                      <td className="py-3 px-4 font-semibold text-on-surface whitespace-nowrap">{formatPrice(order.grandTotal)}</td>
                       <td className="py-3 px-4">
                         <OrderStatusBadge status={order.status} />
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
                         {nextOptions.length > 0 ? (
                           <Select
                             key={order.status}
                             disabled={updateStatus.isPending}
                             onValueChange={(value) => updateStatus.mutate({ id: order.id, status: value as OrderStatus })}
                           >
-                            <SelectTrigger className="w-auto py-1 px-3 text-xs rounded-lg">
+                            <SelectTrigger className="w-auto py-1 px-2.5 sm:px-3 text-xs rounded-lg whitespace-nowrap">
                               <SelectValue placeholder="Change status..." />
                             </SelectTrigger>
                             <SelectContent>

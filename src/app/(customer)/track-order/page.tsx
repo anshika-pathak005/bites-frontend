@@ -62,21 +62,33 @@ function TrackOrderPageContent() {
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
   const [showSearchBox, setShowSearchBox] = useState(false);
 
+  const myOrders = myOrdersQuery.data ?? [];
+  const hasMyOrders = myOrders.length > 0;
+
   // If redirected from checkout or query string with ?orderNumber=...
   useEffect(() => {
-    const prefill = searchParams.get("orderNumber");
-    if (prefill) {
-      setSearchOrderNumber(prefill);
-      trackOrderMutation.mutate(prefill.trim(), {
-        onSuccess: (order) => {
-          if (order) {
-            setTrackedOrder(order);
-            setHasSearched(true);
-          }
-        },
-      });
+    const prefill = searchParams.get("orderNumber")?.trim();
+    if (!prefill) return;
+
+    setSearchOrderNumber(prefill);
+
+    // Only run cross-device lookup if myOrders finished loading and does NOT already contain this order
+    if (!myOrdersQuery.isLoading) {
+      const alreadyInMyOrders = myOrders.some(
+        (o) => o.orderNumber.toLowerCase() === prefill.toLowerCase()
+      );
+      if (!alreadyInMyOrders) {
+        trackOrderMutation.mutate(prefill, {
+          onSuccess: (order) => {
+            if (order) {
+              setTrackedOrder(order);
+              setHasSearched(true);
+            }
+          },
+        });
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, myOrdersQuery.isLoading, myOrders]);
 
   // Handle manual order search
   function handleSearchSubmit(e: React.FormEvent) {
@@ -117,8 +129,9 @@ function TrackOrderPageContent() {
     );
   }
 
-  const myOrders = myOrdersQuery.data ?? [];
-  const hasMyOrders = myOrders.length > 0;
+  const displayedRecentOrders = hasSearched && trackedOrder
+    ? myOrders.filter((o) => o.orderNumber.toLowerCase() !== trackedOrder.orderNumber.toLowerCase())
+    : myOrders;
 
   return (
     <div className="px-margin-mobile md:px-margin-desktop max-w-3xl mx-auto py-stack-md sm:py-stack-lg">
@@ -235,11 +248,11 @@ function TrackOrderPageContent() {
       )}
 
       {/* List of Cookie-Owned Orders (Same Device Automatic Experience) */}
-      {hasMyOrders ? (
+      {displayedRecentOrders.length > 0 ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b border-outline-variant/30 pb-2">
             <h2 className="text-sm sm:text-base font-bold text-on-surface">
-              Recent Orders ({myOrders.length})
+              Recent Orders ({displayedRecentOrders.length})
             </h2>
             <button
               onClick={() => myOrdersQuery.refetch()}
@@ -251,7 +264,7 @@ function TrackOrderPageContent() {
           </div>
 
           <div className="space-y-4 sm:space-y-6">
-            {myOrders.map((order) => (
+            {displayedRecentOrders.map((order) => (
               <OrderTrackingCard
                 key={order.id || order.orderNumber}
                 order={order}
@@ -377,7 +390,7 @@ function OrderTrackingCard({
           {order.cancelReason && <span className="font-normal text-secondary">({order.cancelReason})</span>}
         </div>
       ) : (
-        <div className="py-2 border-b border-outline-variant/30 pb-5">
+        <div className="py-4 sm:py-6 border-b border-outline-variant/30">
           <div className="flex items-center justify-between overflow-x-auto">
             {PROGRESS_STEPS.map((step, index) => {
               const currentIndex = PROGRESS_STEPS.indexOf(order.status);
@@ -450,11 +463,18 @@ function OrderTrackingCard({
               {order.deliveryAddress}
               {order.landmark ? ` • Near ${order.landmark}` : ""}
               {order.pincode ? ` • ${order.pincode}` : ""}
+              {order.distanceKm != null ? ` • ${Number(order.distanceKm).toFixed(1)} km` : ""}
             </p>
           )}
         </div>
 
-        <div className="text-right sm:text-right">
+        <div className="text-right sm:text-right space-y-0.5">
+          <div className="text-xs text-secondary flex items-center justify-end gap-2">
+            <span>Delivery Charge:</span>
+            <span className="font-medium text-on-surface">
+              {order.deliveryCharge === 0 ? "FREE" : formatPrice(order.deliveryCharge ?? 0)}
+            </span>
+          </div>
           <span className="text-xs text-secondary block">Total Paid (COD)</span>
           <span className="text-base sm:text-lg font-bold text-primary">
             {formatPrice(order.grandTotal)}

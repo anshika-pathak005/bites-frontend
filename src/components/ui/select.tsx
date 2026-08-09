@@ -18,14 +18,14 @@ export function SelectTrigger({
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "flex w-full items-center justify-between gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3 text-body-md font-body-md text-on-surface outline-none transition-all focus:border-primary focus:border-2 disabled:opacity-50 disabled:pointer-events-none data-[placeholder]:text-on-surface-variant/60",
+        "flex w-full items-center justify-between gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm text-on-surface outline-none transition-all focus:border-primary focus:border-2 disabled:opacity-50 disabled:pointer-events-none data-[placeholder]:text-on-surface-variant/60",
         className
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="w-4 h-4 text-on-surface-variant shrink-0" />
+        <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-on-surface-variant shrink-0" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -45,7 +45,7 @@ export function SelectContent({
         position="popper"
         sideOffset={4}
         className={cn(
-          "z-50 max-h-72 overflow-hidden rounded-lg border border-outline-variant bg-surface-container-lowest shadow-lg",
+          "z-50 max-h-72 min-w-[8rem] overflow-hidden rounded-lg border border-outline-variant bg-surface-container-lowest shadow-lg",
           "w-[var(--radix-select-trigger-width)]",
           className
         )}
@@ -67,17 +67,17 @@ export function SelectItem({
   return (
     <SelectPrimitive.Item
       className={cn(
-        "relative flex items-center rounded-md px-3 py-2 pr-8 text-body-md font-body-md text-on-surface outline-none cursor-pointer select-none transition-colors",
+        "relative flex items-center rounded-md px-2.5 py-1.5 sm:px-3 sm:py-2 pr-7 sm:pr-8 text-xs sm:text-sm text-on-surface outline-none cursor-pointer select-none transition-colors",
         "data-[highlighted]:bg-primary-fixed/40",
-        "data-[state=checked]:bg-primary-fixed/60 data-[state=checked]:font-label-md",
+        "data-[state=checked]:bg-primary-fixed/60 data-[state=checked]:font-semibold",
         "data-[disabled]:opacity-50 data-[disabled]:pointer-events-none",
         className
       )}
       {...props}
     >
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-      <SelectPrimitive.ItemIndicator className="absolute right-3">
-        <Check className="w-4 h-4 text-primary" />
+      <SelectPrimitive.ItemIndicator className="absolute right-2 sm:right-3">
+        <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   );

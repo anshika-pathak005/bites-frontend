@@ -11,6 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: "bg-primary text-on-primary hover:bg-primary/90 hover:scale-[1.02] shadow-md hover:shadow-lg shadow-primary/20",
+        default: "bg-primary text-on-primary hover:bg-primary/90 hover:scale-[1.02] shadow-md hover:shadow-lg shadow-primary/20",
         secondary: "bg-surface-container-high text-on-surface hover:bg-primary-fixed hover:text-on-primary-fixed-variant",
         outline: "border-2 border-outline/80 text-on-surface hover:bg-surface-variant hover:border-primary",
         ghost: "text-primary hover:bg-primary-fixed/30",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -12,6 +12,7 @@ import { ImageUploadField } from "@/components/ui/image-upload-field";
 import { formatPrice, cn } from "@/lib/utils";
 import { useAdminMenuItems, useMenuItemMutations } from "@/features/admin/menu-management/hooks/use-admin-menu-items";
 import { useAdminCategories } from "@/features/admin/category-management/hooks/use-admin-categories";
+import { useDebounce } from "@/hooks/use-debounce";
 import type { MenuItem } from "@/types/menu.types";
 import type { MenuItemPayload } from "@/features/admin/menu-management/api/admin-menu-items.api";
 
@@ -37,7 +38,14 @@ const EMPTY_FORM: MenuItemFormState = {
 export default function AdminMenuPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const { data, isLoading } = useAdminMenuItems({ page, pageSize: 12, search: search || undefined });
+  const debouncedSearch = useDebounce(search, 400);
+
+  // Reset to page 0 whenever debounced search input changes
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
+
+  const { data, isLoading } = useAdminMenuItems({ page, pageSize: 12, search: debouncedSearch || undefined });
   const { data: categories } = useAdminCategories();
   const { create, update, toggleAvailability, remove } = useMenuItemMutations();
 
@@ -47,6 +55,8 @@ export default function AdminMenuPage() {
   const [form, setForm] = useState<MenuItemFormState>(EMPTY_FORM);
   // Item pending a delete confirmation; null means the dialog is closed.
   const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null);
+  // Item pending a stock toggle confirmation (in stock <-> out of stock).
+  const [stockToggleTarget, setStockToggleTarget] = useState<MenuItem | null>(null);
   // True while the image field's upload is in flight — blocks Save so the
   // form can't submit before the hosted URL is actually ready.
   const [isImageUploading, setIsImageUploading] = useState(false);
@@ -60,9 +70,9 @@ export default function AdminMenuPage() {
 
   // Opens the form pre-filled with an existing item's values for editing.
   function startEdit(item: MenuItem) {
-    setEditingId(item.id);
+    setEditingId(String(item.id));
     setForm({
-      categoryId: item.categoryId,
+      categoryId: item.categoryId ? String(item.categoryId) : "",
       name: item.name,
       description: item.description ?? "",
       price: item.price,
@@ -108,13 +118,16 @@ export default function AdminMenuPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">Category</label>
-            <Select value={form.categoryId} onValueChange={(value) => setForm({ ...form, categoryId: value })}>
+            <Select
+              value={form.categoryId ? String(form.categoryId) : undefined}
+              onValueChange={(value) => setForm({ ...form, categoryId: value })}
+            >
               <SelectTrigger className="rounded-xl">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
                 {categories?.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  <SelectItem key={String(c.id)} value={String(c.id)}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -181,7 +194,7 @@ export default function AdminMenuPage() {
           placeholder="Search menu items"
           className="pl-9 text-xs sm:text-sm py-2 rounded-xl"
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+          onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
@@ -191,7 +204,7 @@ export default function AdminMenuPage() {
           <div className="flex justify-center py-16"><Spinner className="w-8 h-8 text-primary" /></div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-xs sm:text-sm">
+            <table className="w-full text-xs sm:text-sm min-w-[500px]">
               <thead>
                 <tr className="text-left text-secondary bg-surface-container-low border-b border-outline-variant/30 font-semibold">
                   <th className="py-3 px-4">Name</th>
@@ -204,16 +217,19 @@ export default function AdminMenuPage() {
                 {data?.items.map((item) => (
                   <tr key={item.id} className="border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low/50 transition-colors">
                     <td className="py-3 px-4 font-semibold text-on-surface">{item.name}</td>
-                    <td className="py-3 px-4 font-medium text-on-surface">{formatPrice(item.price)}</td>
+                    <td className="py-3 px-4 font-medium text-on-surface whitespace-nowrap">{formatPrice(item.price)}</td>
                     <td className="py-3 px-4">
                       <button
-                        onClick={() => toggleAvailability.mutate({ id: item.id, available: !item.isAvailable })}
+                        onClick={() => setStockToggleTarget(item)}
                         className={cn(
-                          "px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all",
-                          item.isAvailable ? "bg-green-100 text-green-800" : "bg-error-container text-on-error-container"
+                          "inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-all active:scale-95 border",
+                          item.isAvailable
+                            ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200/80"
+                            : "bg-error-container text-on-error-container border-error/20 hover:bg-error-container/80"
                         )}
                       >
-                        {item.isAvailable ? "In Stock" : "Out of Stock"}
+                        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", item.isAvailable ? "bg-green-600" : "bg-error")} />
+                        <span>{item.isAvailable ? "In Stock" : "Out of Stock"}</span>
                       </button>
                     </td>
                     <td className="py-3 px-4">
@@ -246,6 +262,31 @@ export default function AdminMenuPage() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Dialog for Toggling Stock Availability */}
+      <ConfirmDialog
+        open={!!stockToggleTarget}
+        title={stockToggleTarget?.isAvailable ? "Mark as Out of Stock?" : "Mark as In Stock?"}
+        message={
+          stockToggleTarget?.isAvailable
+            ? `Are you sure you want to mark "${stockToggleTarget?.name}" as Out of Stock? Customers will not be able to order this dish until it is back in stock.`
+            : `Are you sure you want to mark "${stockToggleTarget?.name}" as In Stock? It will immediately become available for customers to order.`
+        }
+        confirmLabel={stockToggleTarget?.isAvailable ? "Mark Out of Stock" : "Mark In Stock"}
+        confirmVariant={stockToggleTarget?.isAvailable ? "destructive" : "primary"}
+        isLoading={toggleAvailability.isPending}
+        onCancel={() => setStockToggleTarget(null)}
+        onConfirm={() => {
+          if (stockToggleTarget) {
+            toggleAvailability.mutate(
+              { id: stockToggleTarget.id, available: !stockToggleTarget.isAvailable },
+              {
+                onSettled: () => setStockToggleTarget(null),
+              }
+            );
+          }
+        }}
+      />
 
       <ConfirmDialog
         open={!!deleteTarget}

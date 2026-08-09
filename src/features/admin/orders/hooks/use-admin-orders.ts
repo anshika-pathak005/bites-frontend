@@ -27,7 +27,7 @@ export function useAdminOrder(id: string) {
 export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) => updateOrderStatus(id, status),
+    mutationFn: ({ id, status }: { id: string | number; status: OrderStatus }) => updateOrderStatus(String(id), status),
     onSuccess: () => {
       // Broad invalidation on purpose — a status change affects the orders
       // list, the order detail view, AND the dashboard's pending count all
