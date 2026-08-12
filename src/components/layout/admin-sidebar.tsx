@@ -26,7 +26,7 @@ const NAV_ITEMS = [
   { label: "Orders", href: ROUTES.admin.orders, icon: ShoppingBag },
   { label: "Menu", href: ROUTES.admin.menu, icon: UtensilsCrossed },
   { label: "Categories", href: ROUTES.admin.categories, icon: Tags },
-  { label: "Delivery Areas", href: ROUTES.admin.deliveryAreas, icon: MapPin },
+  // { label: "Delivery Areas", href: ROUTES.admin.deliveryAreas, icon: MapPin },
   { label: "Customers", href: ROUTES.admin.customers, icon: Users },
   { label: "Settings", href: ROUTES.admin.settings, icon: Settings },
   { label: "Profile", href: ROUTES.admin.profile, icon: UserCircle },
