@@ -1,34 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Elegant, Professional Headline Style (Plus Jakarta Sans) */
+.font-jakarta {
+  font-family: "Plus Jakarta Sans", var(--font-headline), -apple-system, BlinkMacSystemFont, sans-serif;
+  font-optical-sizing: auto;
+}
+
+/* Professional Modern Body Style (Inter) */
+.font-inter {
+  font-family: "Inter", var(--font-body), -apple-system, BlinkMacSystemFont, sans-serif;
+  font-optical-sizing: auto;
+}
+
 @layer base {
   body {
-    @apply bg-surface text-on-surface font-body-md;
+    @apply bg-surface text-on-surface font-body-md antialiased;
   }
 
-  /* Custom sleek scrollbar matching the Bites theme */
+  /* Prevent browser autofill white background override in dark mode */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  textarea:-webkit-autofill:active,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus,
+  select:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px #201f1f inset !important;
+    -webkit-text-fill-color: #e5e2e1 !important;
+    caret-color: #e5e2e1 !important;
+    transition: background-color 50000s ease-in-out 0s !important;
+  }
+
+  /* Sleek midnight dark scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: #131313;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #d4c4ae;
+    background: #353534;
     border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #7b5800;
+    background: #F5A64E;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #d4c4ae transparent;
+    scrollbar-color: #353534 #131313;
   }
 }
 
@@ -40,23 +73,80 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f5f3f3;
+    background: #1c1b1b;
     border-radius: 9999px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #d4c4ae;
+    background: #504538;
     border-radius: 9999px;
-    border: 1px solid #f5f3f3;
+    border: 1px solid #1c1b1b;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #7b5800;
+    background: #F5A64E;
   }
 
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #d4c4ae #f5f3f3;
+    scrollbar-color: #504538 #1c1b1b;
+  }
+
+  /* Hero dark vignette gradient */
+  .hero-gradient {
+    background: linear-gradient(
+      180deg,
+      rgba(19, 19, 19, 0.45) 0%,
+      rgba(19, 19, 19, 0.75) 60%,
+      rgba(19, 19, 19, 0.98) 100%
+    );
+  }
+
+  .nav-border {
+    border-bottom: 1px solid rgba(160, 142, 122, 0.2);
+  }
+
+  .menu-dot-leader {
+    border-bottom: 2px dotted #504538;
+    flex-grow: 1;
+    margin: 0 12px;
+    position: relative;
+    top: -6px;
+  }
+
+  /* Warm amber hover glow */
+  .glow-hover {
+    transition: all 0.3s ease;
+  }
+
+  .glow-hover:hover {
+    box-shadow: 0 0 25px rgba(245, 166, 78, 0.45);
+  }
+
+  .glow-pulse {
+    animation: glow-pulse-kf 3s infinite alternate ease-in-out;
+  }
+
+  @keyframes glow-pulse-kf {
+    0% {
+      box-shadow: 0 0 10px rgba(245, 166, 78, 0.2);
+    }
+    100% {
+      box-shadow: 0 0 30px rgba(245, 166, 78, 0.55);
+    }
+  }
+
+  /* Card zoom on hover */
+  .card-zoom-container {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+  }
+
+  .card-zoom-container .card-zoom-image {
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card-zoom-container:hover .card-zoom-image {
+    transform: scale(1.08);
   }
 
   /* Dynamic celebratory animations for order confirmation and interactive UI */
@@ -95,7 +185,7 @@
       transform: translateY(0px);
     }
     50% {
-      transform: translateY(-6px);
+      transform: translateY(-8px);
     }
   }
 
@@ -108,6 +198,6 @@
   }
 
   .animate-float {
-    animation: float-gentle 3.5s ease-in-out infinite;
+    animation: float-gentle 4s ease-in-out infinite;
   }
 }

@@ -1,38 +1,47 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Globe, Instagram, Facebook } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import { SITE_CONTENT } from "@/data/site-content";
 
-// Site-wide footer: brand blurb, social links, nav columns, and contact info.
+// Site-wide footer: luxury brand signature, social links, nav columns, and contact info.
 export function Footer() {
   return (
-    <footer className="w-full pt-stack-lg pb-stack-md bg-surface-container-highest">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+    <footer className="w-full pt-16 pb-12 bg-surface-container-lowest border-t border-outline-variant/20">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+        {/* Brand Column */}
         <div className="space-y-4">
-          <Link href={ROUTES.home} className="text-headline-md font-headline-md text-primary">
-            Bites
+          <Link href={ROUTES.home} className="inline-block group">
+            <div className="relative h-10 w-28 transition-transform duration-300 group-hover:scale-105">
+              <Image
+                src="/images/logo.png"
+                alt="Bites Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
           </Link>
-          <p className="text-body-md font-body-md text-on-surface max-w-xs">
+          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant max-w-xs leading-relaxed">
             {SITE_CONTENT.footerTagline}
           </p>
-          <div className="flex gap-4">
+          <div className="flex gap-3 pt-2">
             <a
               href="#"
-              className="w-10 h-10 rounded-full bg-surface flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all"
+              className="w-10 h-10 rounded-xl bg-surface-container border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-primary-fixed hover:border-primary-container/60 hover:bg-surface-container-high transition-all"
               aria-label="Website"
             >
               <Globe className="w-4 h-4" />
             </a>
             <a
               href="#"
-              className="w-10 h-10 rounded-full bg-surface flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all"
+              className="w-10 h-10 rounded-xl bg-surface-container border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-primary-fixed hover:border-primary-container/60 hover:bg-surface-container-high transition-all"
               aria-label="Instagram"
             >
               <Instagram className="w-4 h-4" />
             </a>
             <a
               href="#"
-              className="w-10 h-10 rounded-full bg-surface flex items-center justify-center hover:bg-primary hover:text-on-primary transition-all"
+              className="w-10 h-10 rounded-xl bg-surface-container border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-primary-fixed hover:border-primary-container/60 hover:bg-surface-container-high transition-all"
               aria-label="Facebook"
             >
               <Facebook className="w-4 h-4" />
@@ -40,36 +49,68 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          <h5 className="font-label-md text-label-md text-on-surface">Navigation</h5>
-          <nav className="flex flex-col gap-2">
-            <Link href={ROUTES.home} className="text-on-secondary-container hover:text-primary transition-colors">Home</Link>
-            <Link href={ROUTES.menu} className="text-on-secondary-container hover:text-primary transition-colors">Menu</Link>
-            <Link href={ROUTES.trackOrder} className="text-on-secondary-container hover:text-primary transition-colors">Track Order</Link>
-            <Link href={ROUTES.about} className="text-on-secondary-container hover:text-primary transition-colors">About</Link>
+        {/* Navigation Links */}
+        <div className="space-y-3">
+          <h5 className="font-title-lg text-sm sm:text-base font-semibold text-primary-fixed uppercase tracking-wider">
+            Navigation
+          </h5>
+          <nav className="flex flex-col gap-2.5">
+            <Link href={ROUTES.home} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
+              Home
+            </Link>
+            <Link href={ROUTES.menu} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
+              Our Menu
+            </Link>
+            <Link href={ROUTES.trackOrder} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
+              Live Order Tracker
+            </Link>
+            <Link href={ROUTES.about} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
+              About Bites
+            </Link>
           </nav>
         </div>
 
-        <div className="space-y-4">
-          <h5 className="font-label-md text-label-md text-on-surface">Company</h5>
-          <nav className="flex flex-col gap-2">
-            <Link href={ROUTES.contact} className="text-on-secondary-container hover:text-primary transition-colors">Contact Us</Link>
-            <span className="text-on-secondary-container">Privacy Policy</span>
-            <span className="text-on-secondary-container">Terms of Service</span>
+        {/* Company Links */}
+        <div className="space-y-3">
+          <h5 className="font-title-lg text-sm sm:text-base font-semibold text-primary-fixed uppercase tracking-wider">
+            Company
+          </h5>
+          <nav className="flex flex-col gap-2.5">
+            <Link href={ROUTES.contact} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
+              Contact & Inquiries
+            </Link>
+            <span className="font-body-md text-xs sm:text-sm text-on-surface-variant/70 cursor-pointer hover:text-primary-fixed transition-colors">
+              Privacy Policy
+            </span>
+            <span className="font-body-md text-xs sm:text-sm text-on-surface-variant/70 cursor-pointer hover:text-primary-fixed transition-colors">
+              Terms of Service
+            </span>
+            <span className="font-body-md text-xs sm:text-sm text-on-surface-variant/70 cursor-pointer hover:text-primary-fixed transition-colors">
+              Kitchen Hygiene
+            </span>
           </nav>
         </div>
 
-        <div className="space-y-4">
-          <h5 className="font-label-md text-label-md text-on-surface">Get in Touch</h5>
-          <p className="text-sm text-secondary">{SITE_CONTENT.contact.address}</p>
-          <p className="text-sm text-secondary">{SITE_CONTENT.contact.phone}</p>
-          <p className="text-sm text-secondary">{SITE_CONTENT.contact.email}</p>
+        {/* Contact Info */}
+        <div className="space-y-3">
+          <h5 className="font-title-lg text-sm sm:text-base font-semibold text-primary-fixed uppercase tracking-wider">
+            Get in Touch
+          </h5>
+          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+            {SITE_CONTENT.contact.address}
+          </p>
+          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant">
+            {SITE_CONTENT.contact.phone}
+          </p>
+          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant">
+            {SITE_CONTENT.contact.email}
+          </p>
         </div>
       </div>
-      <div className="mt-12 border-t border-outline-variant/30 pt-8 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto text-center">
-        <p className="font-body-md text-body-md text-on-surface">
-          {/* Always shows the current year rather than a hardcoded one */}
-          © {new Date().getFullYear()} Bites. All rights reserved. Crafted for comfort.
+
+      <div className="mt-12 border-t border-outline-variant/20 pt-6 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto text-center">
+        <p className="font-body-md text-xs sm:text-sm text-on-surface-variant">
+          © {new Date().getFullYear()} Bites Culinary. All rights reserved. Crafted with passion & comfort.
         </p>
       </div>
     </footer>

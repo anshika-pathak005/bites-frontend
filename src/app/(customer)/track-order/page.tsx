@@ -8,12 +8,19 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
   RotateCcw,
   Copy,
   Check,
   ChevronDown,
   ChevronUp,
+  MapPin,
+  Phone,
+  Navigation,
+  ReceiptText,
+  Banknote,
+  CreditCard,
+  Flame,
+  Truck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,13 +35,82 @@ import {
 import { ORDER_STATUS_LABELS } from "@/constants/order-status";
 import type { Order, OrderStatus } from "@/types/order.types";
 
-const PROGRESS_STEPS: OrderStatus[] = [
-  "PENDING",
-  "ACCEPTED",
-  "PREPARING",
-  "OUT_FOR_DELIVERY",
-  "DELIVERED",
+const PROGRESS_STEPS: { status: OrderStatus; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { status: "PENDING", label: "Placed", icon: Clock },
+  { status: "ACCEPTED", label: "Accepted", icon: Check },
+  { status: "PREPARING", label: "Preparing", icon: Flame },
+  { status: "OUT_FOR_DELIVERY", label: "On the Way", icon: Truck },
+  { status: "DELIVERED", label: "Delivered", icon: CheckCircle2 },
 ];
+
+function formatOrderDate(dateString?: string) {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return dateString;
+  }
+}
+
+function PaymentStatusBadge({ status }: { status?: string }) {
+  if (!status) return null;
+  const s = status.toUpperCase();
+  if (s === "PAID" || s === "COMPLETED" || s === "SUCCESS") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-green-100 text-green-800 border border-green-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-green-600" />
+        Paid
+      </span>
+    );
+  }
+  if (s === "PENDING") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
+        Payment Pending
+      </span>
+    );
+  }
+  if (s === "CANCELLED" || s === "FAILED" || s === "REFUNDED") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 border border-red-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+        {s}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-surface-container text-secondary border border-outline-variant/30">
+      {status}
+    </span>
+  );
+}
+
+function PaymentMethodBadge({ method }: { method?: string }) {
+  const m = method?.toUpperCase() || "COD";
+  if (m === "COD" || m === "CASH") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface">
+        <Banknote className="w-3.5 h-3.5 text-primary" />
+        Cash on Delivery (COD)
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface">
+      <CreditCard className="w-3.5 h-3.5 text-primary" />
+      {method || "Online Payment"}
+    </span>
+  );
+}
 
 export default function TrackOrderPage() {
   return (
@@ -62,33 +138,21 @@ function TrackOrderPageContent() {
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
   const [showSearchBox, setShowSearchBox] = useState(false);
 
-  const myOrders = myOrdersQuery.data ?? [];
-  const hasMyOrders = myOrders.length > 0;
-
   // If redirected from checkout or query string with ?orderNumber=...
   useEffect(() => {
-    const prefill = searchParams.get("orderNumber")?.trim();
-    if (!prefill) return;
-
-    setSearchOrderNumber(prefill);
-
-    // Only run cross-device lookup if myOrders finished loading and does NOT already contain this order
-    if (!myOrdersQuery.isLoading) {
-      const alreadyInMyOrders = myOrders.some(
-        (o) => o.orderNumber.toLowerCase() === prefill.toLowerCase()
-      );
-      if (!alreadyInMyOrders) {
-        trackOrderMutation.mutate(prefill, {
-          onSuccess: (order) => {
-            if (order) {
-              setTrackedOrder(order);
-              setHasSearched(true);
-            }
-          },
-        });
-      }
+    const prefill = searchParams.get("orderNumber");
+    if (prefill) {
+      setSearchOrderNumber(prefill);
+      trackOrderMutation.mutate(prefill.trim(), {
+        onSuccess: (order) => {
+          if (order) {
+            setTrackedOrder(order);
+            setHasSearched(true);
+          }
+        },
+      });
     }
-  }, [searchParams, myOrdersQuery.isLoading, myOrders]);
+  }, [searchParams]);
 
   // Handle manual order search
   function handleSearchSubmit(e: React.FormEvent) {
@@ -129,9 +193,8 @@ function TrackOrderPageContent() {
     );
   }
 
-  const displayedRecentOrders = hasSearched && trackedOrder
-    ? myOrders.filter((o) => o.orderNumber.toLowerCase() !== trackedOrder.orderNumber.toLowerCase())
-    : myOrders;
+  const myOrders = myOrdersQuery.data ?? [];
+  const hasMyOrders = myOrders.length > 0;
 
   return (
     <div className="px-margin-mobile md:px-margin-desktop max-w-3xl mx-auto py-stack-md sm:py-stack-lg">
@@ -248,11 +311,11 @@ function TrackOrderPageContent() {
       )}
 
       {/* List of Cookie-Owned Orders (Same Device Automatic Experience) */}
-      {displayedRecentOrders.length > 0 ? (
+      {hasMyOrders ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b border-outline-variant/30 pb-2">
             <h2 className="text-sm sm:text-base font-bold text-on-surface">
-              Recent Orders ({displayedRecentOrders.length})
+              Recent Orders ({myOrders.length})
             </h2>
             <button
               onClick={() => myOrdersQuery.refetch()}
@@ -264,7 +327,7 @@ function TrackOrderPageContent() {
           </div>
 
           <div className="space-y-4 sm:space-y-6">
-            {displayedRecentOrders.map((order) => (
+            {myOrders.map((order) => (
               <OrderTrackingCard
                 key={order.id || order.orderNumber}
                 order={order}
@@ -306,7 +369,7 @@ function TrackOrderPageContent() {
   );
 }
 
-// Reusable Order Card with visual status progress and instant Cancel button
+// Reusable Order Card with visual status progress, ordered items, delivery & billing breakdown
 function OrderTrackingCard({
   order,
   onCancelClick,
@@ -324,9 +387,11 @@ function OrderTrackingCard({
 
   const isCancelled = order.status === "CANCELLED";
   const isDelivered = order.status === "DELIVERED";
+  const stepStatuses = PROGRESS_STEPS.map((s) => s.status);
+  const currentStepIndex = stepStatuses.indexOf(order.status);
 
   return (
-    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4 hover:shadow-md transition-all duration-200">
+    <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl shadow-sm p-4 sm:p-6 space-y-5 hover:shadow-md transition-all duration-200">
       {/* Top Header: Order Number, Date, Status, and Cancel Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-outline-variant/30 pb-4">
         <div>
@@ -336,7 +401,7 @@ function OrderTrackingCard({
             </span>
             <button
               onClick={copyOrderNumber}
-              className="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors cursor-pointer"
+              className="p-1 rounded-md hover:bg-surface-container text-secondary hover:text-primary transition-colors cursor-pointer"
               title="Copy Order ID"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -346,13 +411,14 @@ function OrderTrackingCard({
             {order.orderNumber}
           </p>
           {order.placedAt && (
-            <p className="text-[11px] text-secondary mt-0.5">
-              Placed on {new Date(order.placedAt).toLocaleString()}
+            <p className="text-[11px] text-secondary mt-0.5 flex items-center gap-1">
+              <Clock className="w-3 h-3 text-secondary/70 inline-block" />
+              Placed on {formatOrderDate(order.placedAt)}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-3 self-start sm:self-center">
+        <div className="flex items-center gap-2.5 self-start sm:self-center">
           {/* Status Badge */}
           <span
             className={cn(
@@ -384,47 +450,51 @@ function OrderTrackingCard({
 
       {/* Visual Status Progress Tracker */}
       {isCancelled ? (
-        <div className="px-4 py-3 rounded-xl bg-error-container/60 border border-error/20 text-on-error-container text-xs sm:text-sm font-semibold flex items-center gap-2">
-          <XCircle className="w-4 h-4 shrink-0 text-error" />
-          <span>This order was cancelled.</span>
-          {order.cancelReason && <span className="font-normal text-secondary">({order.cancelReason})</span>}
+        <div className="px-4 py-3.5 rounded-2xl bg-error-container/40 border border-error/20 text-on-error-container text-xs sm:text-sm font-semibold flex items-center gap-2.5">
+          <XCircle className="w-5 h-5 shrink-0 text-error" />
+          <div>
+            <span>This order was cancelled.</span>
+            {order.cancelReason && (
+              <p className="font-normal text-secondary text-xs mt-0.5">Reason: {order.cancelReason}</p>
+            )}
+          </div>
         </div>
       ) : (
-        <div className="py-4 sm:py-6 border-b border-outline-variant/30">
-          <div className="flex items-center justify-between overflow-x-auto">
+        <div className="py-2 border-b border-outline-variant/30 pb-5">
+          <div className="flex items-center justify-between overflow-x-auto gap-2">
             {PROGRESS_STEPS.map((step, index) => {
-              const currentIndex = PROGRESS_STEPS.indexOf(order.status);
-              const isDone = index <= currentIndex;
-              const isCurrent = index === currentIndex;
+              const StepIcon = step.icon;
+              const isDone = index <= currentStepIndex;
+              const isCurrent = index === currentStepIndex;
 
               return (
-                <div key={step} className="flex-1 flex flex-col items-center relative min-w-[65px]">
+                <div key={step.status} className="flex-1 flex flex-col items-center relative min-w-[60px]">
                   {index > 0 && (
                     <div
                       className={cn(
-                        "absolute top-2.5 sm:top-3 right-1/2 w-full h-0.5 transition-colors",
+                        "absolute top-3 sm:top-3.5 right-1/2 w-full h-0.5 transition-colors",
                         isDone ? "bg-primary" : "bg-outline-variant/60"
                       )}
                     />
                   )}
                   <div
                     className={cn(
-                      "w-5 h-5 sm:w-6 sm:h-6 rounded-full z-10 border-2 transition-all flex items-center justify-center",
+                      "w-6 h-6 sm:w-7 sm:h-7 rounded-full z-10 border-2 transition-all flex items-center justify-center",
                       isDone
                         ? "bg-primary border-primary text-white"
-                        : "bg-surface-container-lowest border-outline-variant",
-                      isCurrent && "ring-4 ring-primary/20 scale-110"
+                        : "bg-surface-container-lowest border-outline-variant text-secondary/60",
+                      isCurrent && "ring-4 ring-primary/20 scale-110 shadow-sm"
                     )}
                   >
-                    {isDone && <CheckCircle2 className="w-3.5 h-3.5" />}
+                    <StepIcon className="w-3.5 h-3.5" />
                   </div>
                   <span
                     className={cn(
-                      "text-[9px] sm:text-[10px] text-center mt-1.5 font-medium leading-tight",
+                      "text-[10px] sm:text-[11px] text-center mt-1.5 font-medium leading-tight",
                       isDone ? "text-primary font-bold" : "text-secondary"
                     )}
                   >
-                    {ORDER_STATUS_LABELS[step]}
+                    {step.label}
                   </span>
                 </div>
               );
@@ -433,52 +503,138 @@ function OrderTrackingCard({
         </div>
       )}
 
-      {/* Ordered Items Breakdown */}
-      <div className="space-y-2 pt-1">
-        <p className="text-xs text-secondary font-semibold uppercase tracking-wider">
-          Ordered Items
-        </p>
-        <div className="divide-y divide-outline-variant/20">
-          {order.items?.map((item) => (
-            <div key={item.id} className="flex justify-between items-center py-1.5 text-xs sm:text-sm">
-              <span className="text-on-surface font-medium">
-                {item.itemName} <span className="text-secondary font-normal">× {item.quantity}</span>
-              </span>
-              <span className="font-semibold text-on-surface">
-                {formatPrice(item.subtotal)}
+      {/* Main Content Grid: Items Breakdown on Left/Top, Delivery & Bill Breakdown on Right */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+        {/* Left Column: Ordered Items List */}
+        <div className="bg-surface-container-low/40 rounded-2xl p-4 border border-outline-variant/30 flex flex-col justify-between space-y-3">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-outline-variant/20">
+              <span className="text-xs font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+                <Package className="w-3.5 h-3.5 text-primary" />
+                Ordered Items ({order.items?.length || 0})
               </span>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Delivery Info & Grand Total Footer */}
-      <div className="border-t border-outline-variant/30 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm">
-        <div className="text-secondary max-w-sm">
-          <p className="font-medium text-on-surface">
-            Delivery to: {order.customerName} {order.customerPhone ? `(${order.customerPhone})` : ""}
-          </p>
-          {order.deliveryAddress && (
-            <p className="text-secondary text-[11px] sm:text-xs mt-0.5 line-clamp-1">
-              {order.deliveryAddress}
-              {order.landmark ? ` • Near ${order.landmark}` : ""}
-              {order.pincode ? ` • ${order.pincode}` : ""}
-              {order.distanceKm != null ? ` • ${Number(order.distanceKm).toFixed(1)} km` : ""}
-            </p>
-          )}
-        </div>
-
-        <div className="text-right sm:text-right space-y-0.5">
-          <div className="text-xs text-secondary flex items-center justify-end gap-2">
-            <span>Delivery Charge:</span>
-            <span className="font-medium text-on-surface">
-              {order.deliveryCharge === 0 ? "FREE" : formatPrice(order.deliveryCharge ?? 0)}
-            </span>
+            <div className="divide-y divide-outline-variant/15 max-h-56 overflow-y-auto pr-1">
+              {order.items?.map((item) => (
+                <div key={item.id} className="py-2 first:pt-0 last:pb-0 flex justify-between items-start text-xs sm:text-sm">
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-on-surface">{item.itemName}</p>
+                    <p className="text-[11px] text-secondary">
+                      {formatPrice(item.itemPrice)} × {item.quantity}
+                    </p>
+                  </div>
+                  <span className="font-bold text-on-surface pt-0.5">
+                    {formatPrice(item.subtotal)}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <span className="text-xs text-secondary block">Total Paid (COD)</span>
-          <span className="text-base sm:text-lg font-bold text-primary">
-            {formatPrice(order.grandTotal)}
-          </span>
+
+          <div className="pt-2 border-t border-outline-variant/20 flex justify-between items-center text-xs">
+            <span className="text-secondary">Items Subtotal</span>
+            <span className="font-bold text-on-surface">{formatPrice(order.subtotal ?? 0)}</span>
+          </div>
+        </div>
+
+        {/* Right Column: Delivery Details + Bill Summary */}
+        <div className="space-y-4">
+          {/* Delivery & Customer Info Card */}
+          <div className="bg-surface-container-low/40 rounded-2xl p-4 border border-outline-variant/30 space-y-2.5">
+            <div className="flex items-center justify-between pb-1.5 border-b border-outline-variant/20">
+              <span className="text-xs font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-primary" />
+                Delivery Address
+              </span>
+              {order.distanceKm != null && !isNaN(Number(order.distanceKm)) && (
+                <span className="text-[11px] font-semibold text-secondary bg-surface-container px-2 py-0.5 rounded-full border border-outline-variant/30">
+                  {Number(order.distanceKm).toFixed(1)} km away
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-1 text-xs text-secondary">
+              <div className="flex flex-wrap items-center justify-between gap-1 text-on-surface font-semibold">
+                <span>{order.customerName}</span>
+                {order.customerPhone && (
+                  <a
+                    href={`tel:${order.customerPhone}`}
+                    className="inline-flex items-center gap-1 text-primary hover:underline font-medium text-xs"
+                  >
+                    <Phone className="w-3 h-3" />
+                    {order.customerPhone}
+                  </a>
+                )}
+              </div>
+              <p className="text-on-surface-variant leading-relaxed text-xs">
+                {order.deliveryAddress}
+              </p>
+              {(order.landmark || order.pincode) && (
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] pt-1 border-t border-outline-variant/15 text-secondary">
+                  {order.landmark && (
+                    <span className="inline-flex items-center gap-1">
+                      <Navigation className="w-3 h-3 text-primary/70 shrink-0" />
+                      <span>Landmark: <strong className="text-on-surface font-medium">{order.landmark}</strong></span>
+                    </span>
+                  )}
+                  {order.pincode && (
+                    <span>
+                      PIN: <strong className="text-on-surface font-medium">{order.pincode}</strong>
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bill Summary Card */}
+          <div className="bg-surface-container-low/40 rounded-2xl p-4 border border-outline-variant/30 space-y-2.5">
+            <div className="flex items-center justify-between pb-1.5 border-b border-outline-variant/20">
+              <span className="text-xs font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+                <ReceiptText className="w-3.5 h-3.5 text-primary" />
+                Bill Summary
+              </span>
+              <PaymentStatusBadge status={order.paymentStatus} />
+            </div>
+
+            <div className="space-y-1.5 text-xs text-secondary pt-0.5">
+              <div className="flex justify-between items-center">
+                <span>Item Subtotal</span>
+                <span className="font-semibold text-on-surface">{formatPrice(order.subtotal ?? 0)}</span>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="flex items-center gap-1">
+                  <span>Delivery Charge</span>
+                  {order.distanceKm != null && !isNaN(Number(order.distanceKm)) && (
+                    <span className="text-[10px] text-secondary/80">({Number(order.distanceKm).toFixed(1)} km)</span>
+                  )}
+                </span>
+                <span className="font-semibold text-on-surface">
+                  {order.deliveryCharge === 0 ? (
+                    <span className="text-green-600 font-bold">FREE</span>
+                  ) : (
+                    formatPrice(order.deliveryCharge ?? 0)
+                  )}
+                </span>
+              </div>
+
+              <div className="border-t border-outline-variant/30 pt-2.5 mt-1.5 flex justify-between items-end">
+                <div>
+                  <span className="text-xs text-secondary uppercase tracking-wider font-semibold block">
+                    Grand Total
+                  </span>
+                  <div className="mt-0.5">
+                    <PaymentMethodBadge method={order.paymentMethod} />
+                  </div>
+                </div>
+                <span className="text-lg sm:text-xl font-bold text-primary">
+                  {formatPrice(order.grandTotal ?? 0)}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

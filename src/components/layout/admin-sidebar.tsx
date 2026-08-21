@@ -26,7 +26,7 @@ const NAV_ITEMS = [
   { label: "Orders", href: ROUTES.admin.orders, icon: ShoppingBag },
   { label: "Menu", href: ROUTES.admin.menu, icon: UtensilsCrossed },
   { label: "Categories", href: ROUTES.admin.categories, icon: Tags },
-  // { label: "Delivery Areas", href: ROUTES.admin.deliveryAreas, icon: MapPin },
+  { label: "Delivery Areas", href: ROUTES.admin.deliveryAreas, icon: MapPin },
   { label: "Customers", href: ROUTES.admin.customers, icon: Users },
   { label: "Settings", href: ROUTES.admin.settings, icon: Settings },
   { label: "Profile", href: ROUTES.admin.profile, icon: UserCircle },
@@ -56,7 +56,7 @@ export function AdminSidebar() {
       {/* Backdrop + slide-in drawer, only mounted while open */}
       {isOpen && (
         <div className="md:hidden fixed inset-0 z-40 flex justify-end">
-          <div className="absolute inset-0 bg-inverse-surface/60" onClick={() => setIsOpen(false)} />
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity" onClick={() => setIsOpen(false)} />
           <aside className="relative w-64 h-full bg-surface-container-lowest border-l border-outline-variant/30 flex flex-col">
             <div className="h-16 flex items-center justify-between px-4 border-b border-outline-variant/30">
               <span className="text-headline-md font-headline-md text-primary">Bites Admin</span>

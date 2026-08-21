@@ -27,7 +27,7 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-inverse-surface/60 backdrop-blur-xs" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity" onClick={onClose} />
       <div className="relative z-10 flex items-center justify-center min-h-full p-3 sm:p-4">
         <div className="relative bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-outline-variant/30 sticky top-0 bg-surface-container-lowest/95 backdrop-blur-md z-10">

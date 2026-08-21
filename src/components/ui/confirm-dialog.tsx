@@ -40,7 +40,7 @@ export function ConfirmDialog({
 
   return createPortal(
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-inverse-surface/60 backdrop-blur-xs" onClick={onCancel} />
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity" onClick={onCancel} />
       <div className="relative z-10 flex items-center justify-center min-h-full p-3 sm:p-4">
         <div className="relative bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-2xl p-5 sm:p-6 max-w-sm w-full space-y-4">
           <h3 className="font-headline-md text-lg sm:text-headline-md font-bold text-on-surface">{title}</h3>

@@ -6,23 +6,23 @@ import { forwardRef } from "react";
 // with charcoal-on-white text, thick padding, rounded-xl corners, responsive touch targets,
 // and gentle scaling on hover/active states across all device screens.
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 font-label-md rounded-xl transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97] max-w-full font-semibold select-none whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 shrink-0",
+  "inline-flex items-center justify-center gap-2 font-label-md rounded-xl transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97] max-w-full font-semibold select-none whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container focus-visible:ring-offset-2 shrink-0",
   {
     variants: {
       variant: {
-        primary: "bg-primary text-on-primary hover:bg-primary/90 hover:scale-[1.02] shadow-md hover:shadow-lg shadow-primary/20",
-        default: "bg-primary text-on-primary hover:bg-primary/90 hover:scale-[1.02] shadow-md hover:shadow-lg shadow-primary/20",
-        secondary: "bg-surface-container-high text-on-surface hover:bg-primary-fixed hover:text-on-primary-fixed-variant",
-        outline: "border-2 border-outline/80 text-on-surface hover:bg-surface-variant hover:border-primary",
-        ghost: "text-primary hover:bg-primary-fixed/30",
+        primary: "bg-primary-container text-white hover:bg-primary-fixed hover:scale-[1.02] glow-hover font-semibold shadow-md shadow-primary-container/20",
+        default: "bg-primary-container text-white hover:bg-primary-fixed hover:scale-[1.02] glow-hover font-semibold shadow-md shadow-primary-container/20",
+        secondary: "bg-surface-container border border-outline-variant/40 text-on-surface hover:border-primary-container hover:text-primary-fixed",
+        outline: "border border-outline-variant/60 text-on-surface hover:border-primary-container hover:text-primary-fixed hover:bg-surface-container/50",
+        ghost: "text-on-surface-variant hover:text-primary-fixed hover:bg-surface-container/50",
         destructive: "bg-error text-on-error hover:bg-error/90 hover:scale-[1.02] shadow-md shadow-error/20",
       },
       size: {
-        sm: "px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm min-h-[36px]",
-        md: "px-4.5 py-2.5 sm:px-6 sm:py-3 text-xs sm:text-sm min-h-[44px]",
-        lg: "px-5 py-3 sm:px-8 sm:py-4 text-sm sm:text-base min-h-[48px]",
-        icon: "p-2.5 sm:p-3 rounded-full min-w-[40px] min-h-[40px] flex items-center justify-center shrink-0",
-        full: "w-full px-4 py-3 sm:py-3.5 text-sm sm:text-base min-h-[44px]",
+        sm: "px-3 py-1.5 text-xs min-h-[32px] rounded-lg",
+        md: "px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm min-h-[38px] rounded-xl",
+        lg: "px-5 py-2.5 sm:px-6 sm:py-3 text-sm min-h-[42px] rounded-xl",
+        icon: "p-2 sm:p-2.5 rounded-full min-w-[36px] min-h-[36px] flex items-center justify-center shrink-0",
+        full: "w-full px-4 py-2.5 sm:py-3 text-sm min-h-[40px] rounded-xl",
       },
     },
     defaultVariants: { variant: "primary", size: "md" },
