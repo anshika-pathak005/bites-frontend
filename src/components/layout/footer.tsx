@@ -1,117 +1,126 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Globe, Instagram, Facebook } from "lucide-react";
+import { Globe, Instagram, Facebook, UtensilsCrossed, Sparkles } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
-import { SITE_CONTENT } from "@/data/site-content";
 
-// Site-wide footer: luxury brand signature, social links, nav columns, and contact info.
+// Designer Midnight Culinary footer: centered brand avatar, gold logo, social icons, and nav links.
 export function Footer() {
+  const [logoError, setLogoError] = useState(false);
+
   return (
-    <footer className="w-full pt-16 pb-12 bg-surface-container-lowest border-t border-outline-variant/20">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-        {/* Brand Column */}
-        <div className="space-y-4">
-          <Link href={ROUTES.home} className="inline-block group">
-            <div className="relative h-10 w-28 transition-transform duration-300 group-hover:scale-105">
+    <footer className="w-full bg-surface-container-lowest flex flex-col items-center justify-center py-12 sm:py-16 px-margin-mobile md:px-margin-desktop text-center border-t border-outline-variant/20 relative overflow-hidden">
+      {/* Background Subtle Gradient Vignette */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-surface-container-lowest to-surface pointer-events-none" />
+
+      <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
+        {/* Centered Brand Logo Image - Plain image without background or text */}
+        <Link href={ROUTES.home} className="group mb-4 inline-block">
+          <div className="relative h-12 w-44 sm:h-20 sm:w-56 transition-transform duration-300 group-hover:scale-105">
+            {!logoError ? (
               <Image
                 src="/images/logo.png"
                 alt="Bites Logo"
                 fill
+                unoptimized
+                onError={() => setLogoError(true)}
                 className="object-contain"
               />
-            </div>
-          </Link>
-          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant max-w-xs leading-relaxed">
-            {SITE_CONTENT.footerTagline}
-          </p>
-          <div className="flex gap-3 pt-2">
-            <a
-              href="#"
-              className="w-10 h-10 rounded-xl bg-surface-container border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-primary-fixed hover:border-primary-container/60 hover:bg-surface-container-high transition-all"
-              aria-label="Website"
-            >
-              <Globe className="w-4 h-4" />
-            </a>
-            <a
-              href="#"
-              className="w-10 h-10 rounded-xl bg-surface-container border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-primary-fixed hover:border-primary-container/60 hover:bg-surface-container-high transition-all"
-              aria-label="Instagram"
-            >
-              <Instagram className="w-4 h-4" />
-            </a>
-            <a
-              href="#"
-              className="w-10 h-10 rounded-xl bg-surface-container border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-primary-fixed hover:border-primary-container/60 hover:bg-surface-container-high transition-all"
-              aria-label="Facebook"
-            >
-              <Facebook className="w-4 h-4" />
-            </a>
+            ) : (
+              <span className="font-headline-lg text-3xl sm:text-4xl font-bold text-primary">Bites</span>
+            )}
           </div>
-        </div>
+        </Link>
 
-        {/* Navigation Links */}
-        <div className="space-y-3">
-          <h5 className="font-title-lg text-sm sm:text-base font-semibold text-primary-fixed uppercase tracking-wider">
-            Navigation
-          </h5>
-          <nav className="flex flex-col gap-2.5">
-            <Link href={ROUTES.home} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
-              Home
-            </Link>
-            <Link href={ROUTES.menu} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
-              Our Menu
-            </Link>
-            <Link href={ROUTES.trackOrder} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
-              Live Order Tracker
-            </Link>
-            <Link href={ROUTES.about} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
-              About Bites
-            </Link>
-          </nav>
-        </div>
-
-        {/* Company Links */}
-        <div className="space-y-3">
-          <h5 className="font-title-lg text-sm sm:text-base font-semibold text-primary-fixed uppercase tracking-wider">
-            Company
-          </h5>
-          <nav className="flex flex-col gap-2.5">
-            <Link href={ROUTES.contact} className="font-body-md text-xs sm:text-sm text-on-surface-variant hover:text-primary-fixed transition-colors">
-              Contact & Inquiries
-            </Link>
-            <span className="font-body-md text-xs sm:text-sm text-on-surface-variant/70 cursor-pointer hover:text-primary-fixed transition-colors">
-              Privacy Policy
-            </span>
-            <span className="font-body-md text-xs sm:text-sm text-on-surface-variant/70 cursor-pointer hover:text-primary-fixed transition-colors">
-              Terms of Service
-            </span>
-            <span className="font-body-md text-xs sm:text-sm text-on-surface-variant/70 cursor-pointer hover:text-primary-fixed transition-colors">
-              Kitchen Hygiene
-            </span>
-          </nav>
-        </div>
-
-        {/* Contact Info */}
-        <div className="space-y-3">
-          <h5 className="font-title-lg text-sm sm:text-base font-semibold text-primary-fixed uppercase tracking-wider">
-            Get in Touch
-          </h5>
-          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-            {SITE_CONTENT.contact.address}
-          </p>
-          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant">
-            {SITE_CONTENT.contact.phone}
-          </p>
-          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant">
-            {SITE_CONTENT.contact.email}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-12 border-t border-outline-variant/20 pt-6 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto text-center">
-        <p className="font-body-md text-xs sm:text-sm text-on-surface-variant">
-          © {new Date().getFullYear()} Bites Culinary. All rights reserved. Crafted with passion & comfort.
+        {/* Tagline */}
+        <p className="font-body-md text-xs sm:text-sm text-on-surface-variant/80 max-w-md mx-auto mb-6 leading-relaxed">
+          Crafted with passion, delivered with love. Experience the ultimate midnight culinary journey.
         </p>
+
+        {/* Social Icons */}
+        <div className="flex justify-center gap-3 mb-8">
+          <a
+            href="#"
+            className="w-10 h-10 rounded-xl bg-surface-container border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/60 hover:scale-110 transition-all shadow-sm"
+            aria-label="Website"
+          >
+            <Globe className="w-4 h-4" />
+          </a>
+          <a
+            href="#"
+            className="w-10 h-10 rounded-xl bg-surface-container border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/60 hover:scale-110 transition-all shadow-sm"
+            aria-label="Instagram"
+          >
+            <Instagram className="w-4 h-4" />
+          </a>
+          <a
+            href="#"
+            className="w-10 h-10 rounded-xl bg-surface-container border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/60 hover:scale-110 transition-all shadow-sm"
+            aria-label="Facebook"
+          >
+            <Facebook className="w-4 h-4" />
+          </a>
+        </div>
+
+        {/* Navigation & Legal Links */}
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-8 text-xs sm:text-sm font-medium">
+          <Link
+            href={ROUTES.home}
+            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
+          >
+            Home
+          </Link>
+          <Link
+            href={ROUTES.menu}
+            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
+          >
+            Our Menu
+          </Link>
+          <Link
+            href={ROUTES.trackOrder}
+            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
+          >
+            Track Order
+          </Link>
+          <Link
+            href={ROUTES.about}
+            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
+          >
+            About Us
+          </Link>
+          <a
+            href="#"
+            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
+          >
+            Privacy Policy
+          </a>
+          <a
+            href="#"
+            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
+          >
+            Terms of Service
+          </a>
+          <a
+            href="#"
+            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
+          >
+            Shipping Info
+          </a>
+          <a
+            href="#"
+            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
+          >
+            Careers
+          </a>
+        </div>
+
+        {/* Copyright Footer */}
+        <div className="text-on-surface-variant font-label-md text-xs opacity-75 flex items-center justify-center gap-1">
+          <Sparkles className="w-3 h-3 text-primary/70 inline" />
+          <span>© {new Date().getFullYear()} Bites Culinary. All rights reserved.</span>
+        </div>
       </div>
     </footer>
   );

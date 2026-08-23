@@ -9,6 +9,9 @@ export const ROUTES = {
   trackOrder: "/track-order",
   contact: "/contact",
   about: "/about",
+  login: "/login",
+  register: "/register",
+  profile: "/profile",
   // Admin-only routes, nested under /admin.
   admin: {
     login: "/admin/login",

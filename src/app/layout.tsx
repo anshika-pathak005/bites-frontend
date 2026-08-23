@@ -39,7 +39,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-surface text-on-surface font-body-md antialiased selection:bg-primary-container selection:text-surface">
         <QueryProvider>
           {children}
-          <Toaster position="top-center" richColors theme="dark" />
+          <Toaster
+            position="top-center"
+            theme="dark"
+            toastOptions={{
+              style: {
+                background: "#1c1b1b",
+                border: "1px solid rgba(80, 69, 56, 0.6)",
+                color: "#e5e2e1",
+                borderRadius: "1rem",
+                fontSize: "13px",
+                fontWeight: "600",
+                boxShadow: "0 12px 35px rgba(0, 0, 0, 0.85)",
+              },
+              className: "font-body-md",
+            }}
+          />
         </QueryProvider>
       </body>
     </html>

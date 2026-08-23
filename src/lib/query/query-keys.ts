@@ -29,6 +29,10 @@ export const queryKeys = {
     myOrders: ["orders", "my-orders"] as const,
     track: (orderNumber: string) => ["orders", "track", orderNumber] as const,
   },
+  customer: {
+    profile: ["customer", "profile"] as const,
+    recommendations: ["customer", "recommendations"] as const,
+  },
   admin: {
     dashboard: ["admin", "dashboard"] as const,
     orders: (filters: object) => ["admin", "orders", filters] as const,
