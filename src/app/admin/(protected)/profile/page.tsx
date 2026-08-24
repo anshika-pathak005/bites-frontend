@@ -68,7 +68,7 @@ export default function AdminProfilePage() {
           <Input type="email" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} required className="rounded-xl" />
         </div>
         <div className="pt-1">
-          <Button type="submit" className="w-full sm:w-auto text-white font-semibold px-6" disabled={updateProfile.isPending}>
+          <Button type="submit" className="w-full sm:w-auto text-black font-semibold px-6" disabled={updateProfile.isPending}>
             {updateProfile.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
@@ -99,7 +99,7 @@ export default function AdminProfilePage() {
           />
         </div>
         <div className="pt-1">
-          <Button type="submit" className="w-full sm:w-auto text-white font-semibold px-6" disabled={changePassword.isPending}>
+          <Button type="submit" className="w-full sm:w-auto text-black font-semibold px-6" disabled={changePassword.isPending}>
             {changePassword.isPending ? "Updating..." : "Change Password"}
           </Button>
         </div>

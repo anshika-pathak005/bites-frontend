@@ -62,7 +62,7 @@ export default function ContactPage() {
           </div>
           <Input name="subject" placeholder="Subject" required />
           <Textarea name="message" placeholder="Your message" required className="min-h-[120px]" />
-          <Button type="submit" size="lg" className="w-full sm:w-auto text-white font-semibold" disabled={isSubmitting}>
+          <Button type="submit" size="lg" className="w-full sm:w-auto text-black font-semibold" disabled={isSubmitting}>
             {isSubmitting ? "Sending..." : "Send Message"}
           </Button>
         </form>

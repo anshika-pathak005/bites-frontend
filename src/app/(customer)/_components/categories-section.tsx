@@ -116,7 +116,7 @@ function CategoryCard({ category, fallbackImage }: { category: Category; fallbac
           alt={category.name}
           fill
           sizes="(max-width: 640px) 260px, (max-width: 768px) 290px, 320px"
-          className="object-cover card-zoom-image brightness-90 group-hover:brightness-100"
+          className="object-cover scale-[0.88] group-hover:scale-100 transition-transform duration-500 brightness-90 group-hover:brightness-100"
         />
         {/* Subtle dark vignette on top of image */}
         <div className="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent opacity-80" />

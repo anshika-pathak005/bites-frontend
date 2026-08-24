@@ -108,7 +108,7 @@ export default function AdminMenuPage() {
           <h1 className="text-2xl sm:text-headline-lg font-bold text-on-surface">Menu Management</h1>
           <p className="text-secondary text-xs sm:text-sm mt-1">Add, edit, and manage stock for your dishes.</p>
         </div>
-        <Button onClick={startCreate} className="w-full sm:w-auto text-white font-semibold shadow-sm rounded-xl py-2.5 px-5 shrink-0">
+        <Button onClick={startCreate} className="w-full sm:w-auto text-black font-semibold shadow-sm rounded-xl py-2.5 px-5 shrink-0">
           <Plus className="w-4 h-4 mr-1.5 shrink-0" /> New Item
         </Button>
       </div>
@@ -222,13 +222,13 @@ export default function AdminMenuPage() {
                       <button
                         onClick={() => setStockToggleTarget(item)}
                         className={cn(
-                          "inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-all active:scale-95 border",
+                          "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer transition-all active:scale-95 border shadow-sm",
                           item.isAvailable
-                            ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200/80"
-                            : "bg-error-container text-on-error-container border-error/20 hover:bg-error-container/80"
+                            ? "bg-emerald-950/60 text-emerald-400 border-emerald-500/40 hover:bg-emerald-900/60 hover:border-emerald-500/70"
+                            : "bg-red-950/60 text-red-400 border-red-500/40 hover:bg-red-900/60 hover:border-red-500/70"
                         )}
                       >
-                        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", item.isAvailable ? "bg-green-600" : "bg-error")} />
+                        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", item.isAvailable ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-red-400")} />
                         <span>{item.isAvailable ? "In Stock" : "Out of Stock"}</span>
                       </button>
                     </td>
@@ -273,7 +273,7 @@ export default function AdminMenuPage() {
             : `Are you sure you want to mark "${stockToggleTarget?.name}" as In Stock? It will immediately become available for customers to order.`
         }
         confirmLabel={stockToggleTarget?.isAvailable ? "Mark Out of Stock" : "Mark In Stock"}
-        confirmVariant={stockToggleTarget?.isAvailable ? "destructive" : "primary"}
+        confirmVariant="primary"
         isLoading={toggleAvailability.isPending}
         onCancel={() => setStockToggleTarget(null)}
         onConfirm={() => {

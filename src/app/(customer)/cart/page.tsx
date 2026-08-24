@@ -283,9 +283,9 @@ export default function CartPage() {
 
             <div className="pt-2 space-y-3">
               <Link href={ROUTES.checkout} className="block w-full">
-                <Button size="lg" className="w-full text-body-md font-semibold gap-2 py-6 rounded-xl text-white cursor-pointer">
+                <Button size="lg" className="w-full text-body-md font-bold gap-2 py-6 rounded-xl text-black cursor-pointer">
                   Proceed to Checkout
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 text-black" />
                 </Button>
               </Link>
               <Link href={ROUTES.menu} className="block text-center text-xs text-secondary hover:text-primary transition-colors sm:hidden">
@@ -305,9 +305,9 @@ export default function CartPage() {
               <span className="text-primary font-bold text-xl">{formatPrice(cart.subtotal)}</span>
             </div>
             <Link href={ROUTES.checkout} className="flex-1 max-w-[200px]">
-              <Button size="lg" className="w-full text-sm font-semibold gap-1.5 py-5 rounded-xl shadow-md text-white cursor-pointer">
+              <Button size="lg" className="w-full text-sm font-bold gap-1.5 py-5 rounded-xl shadow-md text-black cursor-pointer">
                 Checkout
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 text-black" />
               </Button>
             </Link>
           </div>

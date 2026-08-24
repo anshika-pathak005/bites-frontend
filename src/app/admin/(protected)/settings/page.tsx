@@ -189,7 +189,7 @@ export default function AdminSettingsPage() {
         </label>
 
         <div className="pt-2">
-          <Button type="submit" className="w-full sm:w-auto text-white font-semibold px-6" disabled={updateSettings.isPending || isImageUploading}>
+          <Button type="submit" className="w-full sm:w-auto text-black font-semibold px-6" disabled={updateSettings.isPending || isImageUploading}>
             {updateSettings.isPending ? "Saving..." : "Save Settings"}
           </Button>
         </div>

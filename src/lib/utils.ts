@@ -7,11 +7,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // One shared money formatter so every price on the site (menu cards, cart,
-// checkout, order tracking, admin) renders identically.
-export function formatPrice(amount: number) {
+// checkout, order tracking, admin) renders identically, safely falling back to ₹0 if undefined or NaN.
+export function formatPrice(amount?: number | null) {
+  const val = typeof amount === "number" && !isNaN(amount) ? amount : Number(amount) || 0;
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(val);
 }

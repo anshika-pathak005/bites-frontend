@@ -89,8 +89,8 @@ function CustomerRow({
                     <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-primary" />
                     <span>
                       {addr.label ? <strong className="text-on-surface">{addr.label}: </strong> : ""}
-                      {addr.fullAddress}
-                      {addr.landmark ? ` (${addr.landmark})` : ""} — {addr.deliveryAreaName}
+                      {addr.landmark ? ` (${addr.landmark})` : ""}
+                      {addr.pincode ? ` • PIN: ${addr.pincode}` : ""}
                       {addr.isDefault ? " · (Default)" : ""}
                     </span>
                   </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Pencil, EyeOff } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -144,8 +145,16 @@ export default function AdminCategoriesPage() {
                     <td className="py-3 px-4 font-semibold text-on-surface">{category.name}</td>
                     <td className="py-3 px-4 text-secondary font-medium">{category.displayOrder}</td>
                     <td className="py-3 px-4 font-semibold">
-                      <span className={category.isActive ? "text-green-700 bg-green-100 px-2.5 py-0.5 rounded-full text-xs" : "text-secondary bg-surface-container-high px-2.5 py-0.5 rounded-full text-xs"}>
-                        {category.isActive ? "Active" : "Inactive"}
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border shadow-sm",
+                          category.isActive
+                            ? "bg-emerald-950/70 text-emerald-400 border-emerald-500/40"
+                            : "bg-red-950/70 text-red-400 border-red-500/40"
+                        )}
+                      >
+                        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", category.isActive ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-red-400")} />
+                        <span>{category.isActive ? "Active" : "Inactive"}</span>
                       </span>
                     </td>
                     <td className="py-3 px-4">
@@ -177,6 +186,7 @@ export default function AdminCategoriesPage() {
         title="Deactivate category?"
         message={`"${deactivateTarget?.name}" will be hidden from customers until it's reactivated.`}
         confirmLabel="Deactivate"
+        confirmVariant="primary"
         isLoading={remove.isPending}
         onCancel={() => setDeactivateTarget(null)}
         onConfirm={() => deactivateTarget && remove.mutate(deactivateTarget.id, { onSuccess: () => setDeactivateTarget(null) })}

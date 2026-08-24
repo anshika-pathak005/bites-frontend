@@ -10,8 +10,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-primary-container text-white hover:bg-primary-fixed hover:scale-[1.02] glow-hover font-semibold shadow-md shadow-primary-container/20",
-        default: "bg-primary-container text-white hover:bg-primary-fixed hover:scale-[1.02] glow-hover font-semibold shadow-md shadow-primary-container/20",
+        primary: "bg-primary-container text-black font-bold hover:bg-primary-fixed hover:scale-[1.02] glow-hover shadow-md shadow-primary-container/20",
+        default: "bg-primary-container text-black font-bold hover:bg-primary-fixed hover:scale-[1.02] glow-hover shadow-md shadow-primary-container/20",
         secondary: "bg-surface-container border border-outline-variant/40 text-on-surface hover:border-primary-container hover:text-primary-fixed",
         outline: "border border-outline-variant/60 text-on-surface hover:border-primary-container hover:text-primary-fixed hover:bg-surface-container/50",
         ghost: "text-on-surface-variant hover:text-primary-fixed hover:bg-surface-container/50",

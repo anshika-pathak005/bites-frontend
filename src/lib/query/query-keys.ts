@@ -11,9 +11,6 @@ export const queryKeys = {
     list: (filters: object) => ["menu-items", "list", filters] as const,
     detail: (id: string) => ["menu-items", "detail", id] as const,
   },
-  deliveryAreas: {
-    all: ["delivery-areas"] as const,
-  },
   cart: {
     // Cookie-backed guest cart session (no client sessionId parameter needed).
     all: ["cart"] as const,

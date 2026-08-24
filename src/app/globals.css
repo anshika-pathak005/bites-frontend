@@ -40,28 +40,69 @@
     transition: background-color 50000s ease-in-out 0s !important;
   }
 
-  /* Sleek midnight dark scrollbar */
+  /* Global Black Checkbox Styling */
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #141313 !important;
+    border: 1.5px solid rgba(80, 69, 56, 0.6) !important;
+    border-radius: 6px;
+    width: 18px;
+    height: 18px;
+    display: inline-grid;
+    place-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    shrink: 0;
+  }
+
+  input[type="checkbox"]:checked {
+    background-color: #F5A64E !important;
+    border-color: #F5A64E !important;
+  }
+
+  input[type="checkbox"]:checked::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    background-color: #0F0E0E;
+  }
+
+  [role="checkbox"] {
+    background-color: #141313 !important;
+    border-color: rgba(80, 69, 56, 0.6) !important;
+  }
+
+  [role="checkbox"][data-state="checked"] {
+    background-color: #F5A64E !important;
+    border-color: #F5A64E !important;
+    color: #0F0E0E !important;
+  }
+
+  /* Universal Custom Scrollbar Across Entire App */
+  html, body, *, ::-webkit-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #3b3228 #0f0e0e;
+  }
+
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #131313;
+    background: #0f0e0e;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #353534;
+    background: #3b3228;
     border-radius: 9999px;
+    border: 1px solid #0f0e0e;
   }
 
   ::-webkit-scrollbar-thumb:hover {
     background: #F5A64E;
-  }
-
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #353534 #131313;
   }
 }
 

@@ -211,8 +211,12 @@ export function Navbar() {
               </div>
             ) : (
               <Link href={ROUTES.login}>
-                <Button size="md" className="rounded-lg text-surface font-semibold gap-1.5 glow-hover">
-                  <User className="w-4 h-4" />
+                <Button
+                  size="md"
+                  variant="outline"
+                  className="rounded-lg bg-transparent border border-primary text-primary hover:bg-primary/10 hover:text-primary font-bold gap-1.5 transition-all"
+                >
+                  <User className="w-4 h-4 text-primary" />
                   <span>Log In</span>
                 </Button>
               </Link>
@@ -299,12 +303,16 @@ export function Navbar() {
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   <Link href={ROUTES.login} onClick={() => setIsOpen(false)}>
-                    <Button size="md" variant="outline" className="w-full font-semibold py-3 rounded-xl">
+                    <Button
+                      size="md"
+                      variant="outline"
+                      className="w-full bg-transparent border border-primary text-primary hover:bg-primary/10 hover:text-primary font-bold py-3 rounded-xl"
+                    >
                       Sign In
                     </Button>
                   </Link>
                   <Link href={ROUTES.register} onClick={() => setIsOpen(false)}>
-                    <Button size="md" className="w-full text-surface font-bold py-3 rounded-xl glow-hover">
+                    <Button size="md" className="w-full text-black font-bold py-3 rounded-xl glow-hover">
                       Register
                     </Button>
                   </Link>

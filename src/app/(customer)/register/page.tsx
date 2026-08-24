@@ -212,11 +212,11 @@ function RegisterFormContent() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full text-surface font-bold py-3.5 rounded-xl glow-hover flex items-center justify-center gap-2 mt-2 cursor-pointer shadow-lg shadow-primary-container/20"
+              className="w-full text-black font-bold py-3.5 rounded-xl glow-hover flex items-center justify-center gap-2 mt-2 cursor-pointer shadow-lg shadow-primary-container/20"
             >
               {isSubmitting ? (
                 <>
-                  <Spinner className="w-4 h-4 text-surface" />
+                  <Spinner className="w-4 h-4 text-black" />
                   <span>Creating account...</span>
                 </>
               ) : (

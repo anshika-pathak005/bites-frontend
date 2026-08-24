@@ -359,7 +359,7 @@ function CheckoutPageContent() {
           <Button
             type="submit"
             size="lg"
-            className="w-full text-white font-semibold py-6 rounded-xl cursor-pointer"
+            className="w-full text-black font-bold py-6 rounded-xl cursor-pointer"
             disabled={
               placeOrder.isPending ||
               isCalculatingDelivery ||
@@ -368,7 +368,7 @@ function CheckoutPageContent() {
             }
           >
             {placeOrder.isPending ? (
-              <Spinner className="w-5 h-5 text-white" />
+              <Spinner className="w-5 h-5 text-black" />
             ) : isOutsideRadius ? (
               "Address Outside 8km Radius"
             ) : isCalculatingDelivery ? (

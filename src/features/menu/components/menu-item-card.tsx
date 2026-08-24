@@ -118,7 +118,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
           <button
             onClick={() => addItem.mutate({ menuItemId: item.id, quantity: 1 })}
             disabled={!item.isAvailable || addItem.isPending}
-            className="flex-1 flex items-center justify-center gap-1 border border-primary/60 text-primary font-body-md font-semibold rounded-lg sm:rounded-xl py-1.5 sm:py-2 text-[11px] sm:text-xs hover:bg-primary hover:text-surface transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none active:scale-95 cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1 border border-primary/60 text-primary font-body-md font-semibold rounded-lg sm:rounded-xl py-1.5 sm:py-2 text-[11px] sm:text-xs hover:bg-primary hover:text-black transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none active:scale-95 cursor-pointer"
           >
             {addItem.isPending ? (
               <Spinner className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -130,7 +130,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
           <button
             onClick={handleBuyNow}
             disabled={!item.isAvailable}
-            className="flex-1 flex items-center justify-center gap-1 bg-primary text-surface font-body-md font-bold rounded-lg sm:rounded-xl py-1.5 sm:py-2 text-[11px] sm:text-xs hover:bg-primary-fixed glow-hover transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none active:scale-95 cursor-pointer shadow-md"
+            className="flex-1 flex items-center justify-center gap-1 bg-primary text-black font-bold rounded-lg sm:rounded-xl py-1.5 sm:py-2 text-[11px] sm:text-xs hover:bg-primary-fixed glow-hover transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none active:scale-95 cursor-pointer shadow-md"
           >
             <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current" />
             Buy

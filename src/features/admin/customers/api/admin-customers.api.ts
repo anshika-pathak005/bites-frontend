@@ -13,7 +13,8 @@ export interface AdminCustomerAddress {
   label: string | null;
   fullAddress: string;
   landmark: string | null;
-  deliveryAreaName: string;
+  pincode?: string | null;
+  deliveryAreaName?: string;
   isDefault: boolean;
 }
 

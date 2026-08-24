@@ -19,7 +19,6 @@ export const ROUTES = {
     orders: "/admin/orders",
     menu: "/admin/menu",
     categories: "/admin/categories",
-    deliveryAreas: "/admin/delivery-areas",
     customers: "/admin/customers",
     settings: "/admin/settings",
     profile: "/admin/profile",

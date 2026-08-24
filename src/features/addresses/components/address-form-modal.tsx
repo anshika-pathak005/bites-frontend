@@ -226,7 +226,7 @@ export function AddressFormModal({
             isLocating
               ? "bg-surface-container/70 border-outline-variant/40 text-on-surface"
               : hasValidCoordinates
-              ? "bg-green-50 border-green-200 text-green-900"
+              ? "bg-emerald-950/80 border-emerald-500/40 text-emerald-300"
               : "bg-error-container/60 border-error/30 text-on-error-container"
           )}
         >
@@ -235,7 +235,7 @@ export function AddressFormModal({
               {isLocating ? (
                 <Spinner className="w-4 h-4 text-primary shrink-0 mt-0.5" />
               ) : hasValidCoordinates ? (
-                <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               ) : (
                 <AlertCircle className="w-4 h-4 text-error shrink-0 mt-0.5" />
               )}
@@ -308,7 +308,7 @@ export function AddressFormModal({
                 className={cn(
                   "px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer",
                   activeLabel === label
-                    ? "bg-primary text-white border-primary shadow-xs"
+                    ? "bg-primary text-black font-bold border-primary shadow-xs"
                     : "bg-surface-container-high text-on-surface border-outline-variant/40 hover:bg-surface-variant"
                 )}
               >
@@ -400,7 +400,7 @@ export function AddressFormModal({
             type="submit"
             disabled={!canSubmit}
             className={cn(
-              "rounded-xl text-white font-semibold text-xs sm:text-sm px-6 cursor-pointer",
+              "rounded-xl text-black font-bold text-xs sm:text-sm px-6 cursor-pointer",
               !canSubmit && "opacity-50 cursor-not-allowed pointer-events-none"
             )}
           >

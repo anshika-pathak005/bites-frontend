@@ -17,8 +17,8 @@ export function Footer() {
 
       <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
         {/* Centered Brand Logo Image - Plain image without background or text */}
-        <Link href={ROUTES.home} className="group mb-4 inline-block">
-          <div className="relative h-12 w-44 sm:h-20 sm:w-56 transition-transform duration-300 group-hover:scale-105">
+        <Link href={ROUTES.home} className="group mb-3 inline-block">
+          <div className="relative h-9 w-28 sm:h-11 sm:w-36 transition-transform duration-300 group-hover:scale-105">
             {!logoError ? (
               <Image
                 src="/images/logo.png"

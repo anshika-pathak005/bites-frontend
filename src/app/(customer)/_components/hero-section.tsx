@@ -25,12 +25,12 @@ export function HeroSection() {
       {/* Hero Content */}
       <div className="relative z-10 text-center px-margin-mobile md:px-margin-desktop max-w-4xl mx-auto flex flex-col items-center">
         {/* Top Floating Mini Tag */}
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-surface-container/75 backdrop-blur-md border border-primary-container/40 text-primary-fixed mb-4 sm:mb-5 shadow-glow animate-float">
+        {/* <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-surface-container/75 backdrop-blur-md border border-primary-container/40 text-primary-fixed mb-4 sm:mb-5 shadow-glow animate-float">
           <Sparkles className="w-3.5 h-3.5 text-primary-container" />
           <span className="font-label-md text-[11px] sm:text-xs font-semibold tracking-wider uppercase">
             The Midnight Culinary Experience
           </span>
-        </div>
+        </div> */}
 
         {/* Hero Title - Extra Bold, Dim White Shade, Subtle Glow Highlight */}
         <h1 className="font-display-lg font-black font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-neutral-200 mb-4 sm:mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.85)] tracking-wider [word-spacing:0.25em] leading-tight sm:leading-[1.1] uppercase text-center">
@@ -45,7 +45,7 @@ export function HeroSection() {
         {/* Compact Rich-Amber Action CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
           <Link href={ROUTES.menu} className="w-full sm:w-auto">
-            <button className="w-full sm:w-auto bg-primary-container text-white px-6 py-2.5 sm:px-7 sm:py-3 rounded-xl font-body-md text-xs sm:text-sm font-semibold hover:bg-primary-fixed hover:scale-105 transition-all duration-200 glow-hover flex items-center justify-center gap-2 shadow-lg shadow-primary-container/25 cursor-pointer">
+            <button className="w-full sm:w-auto bg-primary-container text-black font-bold px-6 py-2.5 sm:px-7 sm:py-3 rounded-xl font-body-md text-xs sm:text-sm hover:bg-primary-fixed hover:scale-105 transition-all duration-200 glow-hover flex items-center justify-center gap-2 shadow-lg shadow-primary-container/25 cursor-pointer">
               <span>Explore Menu</span>
               <ArrowRight className="w-4 h-4" />
             </button>

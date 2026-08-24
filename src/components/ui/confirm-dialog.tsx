@@ -49,7 +49,7 @@ export function ConfirmDialog({
             <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isLoading} className="font-semibold">
               {cancelLabel}
             </Button>
-            <Button type="button" variant={confirmVariant} size="sm" onClick={onConfirm} disabled={isLoading} className="text-white font-semibold">
+            <Button type="button" variant={confirmVariant} size="sm" onClick={onConfirm} disabled={isLoading} className="font-bold cursor-pointer">
               {isLoading ? "Please wait..." : confirmLabel}
             </Button>
           </div>

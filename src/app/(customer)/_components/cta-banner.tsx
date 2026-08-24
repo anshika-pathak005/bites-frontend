@@ -29,7 +29,7 @@ export function CtaBanner() {
 
           <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col justify-start lg:justify-end gap-3">
             <Link href={ROUTES.menu} className="w-full sm:w-auto lg:w-full">
-              <button className="w-full bg-primary-container text-white px-6 py-3 rounded-xl font-body-md text-sm font-semibold hover:bg-primary-fixed hover:scale-105 transition-all duration-200 glow-hover flex items-center justify-center gap-2 shadow-lg shadow-primary-container/25 cursor-pointer">
+              <button className="w-full bg-primary-container text-black font-bold px-6 py-3 rounded-xl font-body-md text-sm hover:bg-primary-fixed hover:scale-105 transition-all duration-200 glow-hover flex items-center justify-center gap-2 shadow-lg shadow-primary-container/25 cursor-pointer">
                 <span>Order Now</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
