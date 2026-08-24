@@ -34,5 +34,6 @@ export const queryKeys = {
     dashboard: ["admin", "dashboard"] as const,
     orders: (filters: object) => ["admin", "orders", filters] as const,
     customers: (filters: object) => ["admin", "customers", filters] as const,
+    deliverySlabs: ["admin", "delivery-charge-slabs"] as const,
   },
 };

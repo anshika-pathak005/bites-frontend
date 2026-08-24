@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, UtensilsCrossed } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -180,7 +180,7 @@ export default function AdminMenuPage() {
             <Button type="button" variant="outline" className="w-full sm:w-auto font-semibold" onClick={() => setShowForm(false)}>
               Cancel
             </Button>
-            <Button type="submit" className="w-full sm:w-auto text-white font-semibold px-6" disabled={create.isPending || update.isPending || isImageUploading}>
+            <Button type="submit" className="w-full sm:w-auto text-black font-bold px-6" disabled={create.isPending || update.isPending || isImageUploading}>
               {create.isPending || update.isPending ? "Saving..." : "Save Item"}
             </Button>
           </div>
@@ -207,7 +207,7 @@ export default function AdminMenuPage() {
             <table className="w-full text-xs sm:text-sm min-w-[500px]">
               <thead>
                 <tr className="text-left text-secondary bg-surface-container-low border-b border-outline-variant/30 font-semibold">
-                  <th className="py-3 px-4">Name</th>
+                  <th className="py-3 px-4">Item</th>
                   <th className="py-3 px-4">Price</th>
                   <th className="py-3 px-4">Stock</th>
                   <th className="py-3 px-4">Actions</th>
@@ -216,7 +216,41 @@ export default function AdminMenuPage() {
               <tbody>
                 {data?.items.map((item) => (
                   <tr key={item.id} className="border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low/50 transition-colors">
-                    <td className="py-3 px-4 font-semibold text-on-surface">{item.name}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        {item.imageUrl ? (
+                          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-surface-container border border-outline-variant/40 shrink-0">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-surface-container border border-outline-variant/40 flex items-center justify-center text-secondary/60 shrink-0">
+                            <UtensilsCrossed className="w-5 h-5 text-secondary/50" />
+                          </div>
+                        )}
+                        
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-on-surface text-xs sm:text-sm">{item.name}</span>
+                            {item.isVeg ? (
+                              <span className="w-3.5 h-3.5 border border-green-500/60 flex items-center justify-center p-0.5 rounded-xs" title="Veg">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                              </span>
+                            ) : (
+                              <span className="w-3.5 h-3.5 border border-red-500/60 flex items-center justify-center p-0.5 rounded-xs" title="Non-Veg">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                              </span>
+                            )}
+                          </div>
+                          {item.description && (
+                            <p className="text-[11px] text-secondary line-clamp-1 max-w-xs">{item.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                     <td className="py-3 px-4 font-medium text-on-surface whitespace-nowrap">{formatPrice(item.price)}</td>
                     <td className="py-3 px-4">
                       <button

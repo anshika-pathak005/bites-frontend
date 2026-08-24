@@ -7,7 +7,7 @@ export function useAdminCustomers() {
 }
 
 // Fetches a single customer's addresses; disabled until a customer is selected.
-export function useCustomerAddresses(customerId: string | null) {
+export function useCustomerAddresses(customerId: string | number | null) {
   return useQuery({
     queryKey: ["admin", "customers", customerId, "addresses"],
     queryFn: () => fetchCustomerAddresses(customerId!), // non-null assertion is safe because `enabled` guards the null case

@@ -20,8 +20,10 @@ export function useUpdateRestaurantSettings() {
       queryClient.invalidateQueries({ queryKey: KEY });
       // The public footer/contact info reads the same settings — refresh it too.
       queryClient.invalidateQueries({ queryKey: ["restaurant"] });
-      toast.success("Settings updated");
+      toast.success("Settings updated successfully");
     },
-    onError: () => toast.error("Could not update settings"),
+    onError: (err: Error) => {
+      toast.error(err.message || "Could not update settings");
+    },
   });
 }

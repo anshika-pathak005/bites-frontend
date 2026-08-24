@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { formatPrice, cn } from "@/lib/utils";
 import { useCart } from "@/features/cart/hooks/use-cart";
+import { useGuestAuthNudgeContext } from "@/context/guest-auth-nudge-context";
 import type { MenuItem } from "@/types/menu.types";
 
 /**
@@ -31,10 +32,22 @@ function isValidImageUrl(url: string | null | undefined): boolean {
 export function MenuItemCard({ item }: { item: MenuItem }) {
   const router = useRouter();
   const { addItem } = useCart();
+  const { triggerNudgeIfEligible } = useGuestAuthNudgeContext();
   const [imageError, setImageError] = useState(false);
 
+  function handleAddToCart() {
+    addItem.mutate(
+      { menuItemId: item.id, quantity: 1 },
+      {
+        onSuccess: () => {
+          triggerNudgeIfEligible();
+        },
+      }
+    );
+  }
+
   function handleBuyNow() {
-    // Buy Now Flow skips the cart, going straight to checkout with query params.
+    triggerNudgeIfEligible();
     router.push(`/checkout?buyNowItemId=${item.id}&quantity=1`);
   }
 
@@ -42,40 +55,38 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
 
   return (
     <div className="flex flex-col h-full bg-surface-container border border-outline-variant/30 hover:border-primary-container/60 rounded-2xl shadow-xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden">
-      {/* Image container */}
-      <div className="p-2 sm:p-2.5">
-        <Link
-          href={`/menu/${item.id}`}
-          className="block relative aspect-square w-full overflow-hidden rounded-xl bg-surface-container-high"
-        >
-          {hasValidImage && item.imageUrl ? (
-            <Image
-              src={item.imageUrl.trim()}
-              alt={item.name}
-              fill
-              unoptimized
-              onError={() => setImageError(true)}
-              className="object-cover group-hover:scale-110 transition-transform duration-500 brightness-90 group-hover:brightness-100"
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-on-surface-variant/50 text-xs gap-1 bg-surface-container-high">
-              <UtensilsCrossed className="w-6 h-6" />
-              <span>No image</span>
-            </div>
-          )}
+      {/* Edge-to-Edge Image container */}
+      <Link
+        href={`/menu/${item.id}`}
+        className="block relative aspect-square w-full overflow-hidden bg-surface-container-high"
+      >
+        {hasValidImage && item.imageUrl ? (
+          <Image
+            src={item.imageUrl.trim()}
+            alt={item.name}
+            fill
+            unoptimized
+            onError={() => setImageError(true)}
+            className="object-cover group-hover:scale-105 transition-transform duration-500 brightness-90 group-hover:brightness-100"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-on-surface-variant/50 text-xs gap-1 bg-surface-container-high">
+            <UtensilsCrossed className="w-6 h-6" />
+            <span>No image</span>
+          </div>
+        )}
 
-          {/* Overlay blocks the "add" affordance visually when the item is out of stock */}
-          {!item.isAvailable && (
-            <div className="absolute inset-0 bg-surface/80 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-error font-label-sm text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded-md bg-surface-container border border-error/40">
-                Out of Stock
-              </span>
-            </div>
-          )}
-        </Link>
-      </div>
+        {/* Overlay blocks the "add" affordance visually when the item is out of stock */}
+        {!item.isAvailable && (
+          <div className="absolute inset-0 bg-surface/80 backdrop-blur-sm flex items-center justify-center">
+            <span className="text-error font-label-sm text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:py-1 rounded-md bg-surface-container border border-error/40">
+              Out of Stock
+            </span>
+          </div>
+        )}
+      </Link>
 
-      <div className="px-2.5 sm:px-4 pb-3 sm:pb-4 flex flex-col flex-1 justify-between">
+      <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between">
         <div>
           <div className="flex justify-between items-start gap-1 mb-1 sm:mb-1.5">
             <Link href={`/menu/${item.id}`} className="min-w-0 flex-1">
@@ -116,7 +127,7 @@ export function MenuItemCard({ item }: { item: MenuItem }) {
         {/* Action Row */}
         <div className="mt-auto pt-2 border-t border-outline-variant/20 flex gap-1.5 sm:gap-2">
           <button
-            onClick={() => addItem.mutate({ menuItemId: item.id, quantity: 1 })}
+            onClick={handleAddToCart}
             disabled={!item.isAvailable || addItem.isPending}
             className="flex-1 flex items-center justify-center gap-1 border border-primary/60 text-primary font-body-md font-semibold rounded-lg sm:rounded-xl py-1.5 sm:py-2 text-[11px] sm:text-xs hover:bg-primary hover:text-black transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none active:scale-95 cursor-pointer"
           >

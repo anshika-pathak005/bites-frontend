@@ -110,13 +110,13 @@ function CategoryCard({ category, fallbackImage }: { category: Category; fallbac
       className="shrink-0 w-[260px] sm:w-[290px] md:w-[320px] snap-start bg-surface-container rounded-2xl overflow-hidden card-zoom-container shadow-xl border border-outline-variant/30 hover:border-primary-container/60 group flex flex-col transition-all duration-300"
     >
       {/* Image container */}
-      <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-surface-container-high">
+      <div className="relative h-52 sm:h-56 md:h-60 w-full overflow-hidden bg-surface-container-high">
         <Image
           src={imageUrl}
           alt={category.name}
           fill
           sizes="(max-width: 640px) 260px, (max-width: 768px) 290px, 320px"
-          className="object-cover scale-[0.88] group-hover:scale-100 transition-transform duration-500 brightness-90 group-hover:brightness-100"
+          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 brightness-90 group-hover:brightness-100"
         />
         {/* Subtle dark vignette on top of image */}
         <div className="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent opacity-80" />

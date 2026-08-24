@@ -21,12 +21,18 @@ import {
   CreditCard,
   Flame,
   Truck,
+  Sparkles,
+  ShieldCheck,
+  ArrowRight,
 } from "lucide-react";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatPrice, cn } from "@/lib/utils";
+import { ROUTES } from "@/constants/routes";
+import { useCustomerAuth } from "@/context/customer-auth-context";
 import {
   useMyOrders,
   useTrackOrderMutation,
@@ -129,6 +135,7 @@ function OrderTrackFallback() {
 }
 
 function TrackOrderContent() {
+  const { isAuthenticated } = useCustomerAuth();
   const searchParams = useSearchParams();
   const urlOrderNumber = searchParams.get("orderNumber");
 
@@ -252,50 +259,55 @@ function TrackOrderContent() {
         </div>
       )}
 
-      {/* Accordion Order List */}
-      {hasMyOrders ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
-            <h2 className="text-base sm:text-lg font-bold text-on-surface">
-              Recent Orders ({myOrders.length})
-            </h2>
-            <button
-              onClick={() => myOrdersQuery.refetch()}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-primary transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Refresh Orders
-            </button>
-          </div>
+      {/* Accordion Order List for Logged-In Users */}
+      {isAuthenticated && (
+        hasMyOrders ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+              <h2 className="text-base sm:text-lg font-bold text-on-surface">
+                Recent Orders ({myOrders.length})
+              </h2>
+              <button
+                onClick={() => myOrdersQuery.refetch()}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-primary transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Refresh Orders
+              </button>
+            </div>
 
-          <div className="space-y-3">
-            {myOrders.map((order, idx) => (
-              <OrderTrackingCard
-                key={order.id || order.orderNumber}
-                order={order}
-                defaultExpanded={idx === 0}
-                onCancelClick={(ord) => setCancellingOrder(ord)}
-              />
-            ))}
-          </div>
-        </div>
-      ) : (
-        !hasSearched && (
-          <div className="flex flex-col items-center gap-4 py-16 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-8 shadow-sm max-w-lg mx-auto">
-            <div className="w-14 h-14 rounded-full bg-surface-container border border-outline-variant/30 text-primary flex items-center justify-center">
-              <Package className="w-7 h-7" />
-            </div>
-            <div>
-              <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface">
-                No Active Orders Found
-              </h3>
-              <p className="text-secondary text-xs sm:text-sm mt-1 max-w-sm">
-                Enter your Order ID above to track live delivery status.
-              </p>
+            <div className="space-y-3">
+              {myOrders.map((order, idx) => (
+                <OrderTrackingCard
+                  key={order.id || order.orderNumber}
+                  order={order}
+                  defaultExpanded={idx === 0}
+                  onCancelClick={(ord) => setCancellingOrder(ord)}
+                />
+              ))}
             </div>
           </div>
+        ) : (
+          !hasSearched && (
+            <div className="flex flex-col items-center gap-4 py-16 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-8 shadow-sm max-w-lg mx-auto">
+              <div className="w-14 h-14 rounded-full bg-surface-container border border-outline-variant/30 text-primary flex items-center justify-center">
+                <Package className="w-7 h-7" />
+              </div>
+              <div>
+                <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface">
+                  No Active Orders Found
+                </h3>
+                <p className="text-secondary text-xs sm:text-sm mt-1 max-w-sm">
+                  Enter your Order ID above to track live delivery status.
+                </p>
+              </div>
+            </div>
+          )
         )
       )}
+
+      {/* Guest Sign-In Conversion Card (Only for Guests) */}
+      {!isAuthenticated && <GuestTrackOrderBanner />}
 
       {/* Cancel Order Dialog */}
       <ConfirmDialog
@@ -308,6 +320,62 @@ function TrackOrderContent() {
         onConfirm={handleConfirmCancel}
         onCancel={() => setCancellingOrder(null)}
       />
+    </div>
+  );
+}
+
+/**
+ * Attractive Sign-In Conversion Banner Card rendered specifically for guest users on /track-order.
+ */
+function GuestTrackOrderBanner() {
+  return (
+    <div className="relative overflow-hidden bg-gradient-to-br from-surface-container-lowest via-surface-container/40 to-surface-container-lowest border border-primary/30 rounded-3xl p-6 sm:p-8 shadow-xl max-w-2xl mx-auto my-6 text-center space-y-5">
+      {/* Decorative Glow Background Accent */}
+      <div className="absolute -top-12 -right-12 w-40 h-40 bg-primary/15 blur-3xl rounded-full pointer-events-none" />
+      <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-primary/10 blur-3xl rounded-full pointer-events-none" />
+
+      {/* Top Badge & Header */}
+      <div className="flex flex-col items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/25">
+          <Sparkles className="w-3.5 h-3.5" />
+          Guest Order Tracking
+        </span>
+        <h3 className="font-headline-lg text-xl sm:text-2xl font-bold text-on-surface tracking-tight mt-1">
+          Never Lose Track of Your Midnight Orders
+        </h3>
+        <p className="text-xs sm:text-sm text-secondary max-w-md mx-auto leading-relaxed">
+          Sign in to automatically save all your active orders, track live deliveries in 1-click without typing Order IDs, and auto-fill saved addresses across devices.
+        </p>
+      </div>
+
+      {/* Feature Pills */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-semibold text-on-surface pt-1">
+        <div className="bg-surface-container/60 border border-outline-variant/30 p-3 rounded-2xl flex items-center justify-center gap-2">
+          <Clock className="w-4 h-4 text-primary shrink-0" />
+          <span>Auto Order History</span>
+        </div>
+        <div className="bg-surface-container/60 border border-outline-variant/30 p-3 rounded-2xl flex items-center justify-center gap-2">
+          <MapPin className="w-4 h-4 text-primary shrink-0" />
+          <span>Saved Addresses</span>
+        </div>
+        <div className="bg-surface-container/60 border border-outline-variant/30 p-3 rounded-2xl flex items-center justify-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+          <span>1-Click Live Status</span>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <Link href={ROUTES.login} className="w-full sm:w-auto">
+          <Button size="md" className="w-full sm:w-auto text-black font-bold px-7 py-3 rounded-xl glow-hover flex items-center justify-center gap-2 shadow-md shadow-primary/20 cursor-pointer">
+            <span>Sign In to Track Automatically</span>
+            <ArrowRight className="w-4 h-4 text-black" />
+          </Button>
+        </Link>
+        <Link href={ROUTES.register} className="text-xs text-secondary hover:text-primary font-semibold transition-colors py-2 px-3">
+          Create an Account
+        </Link>
+      </div>
     </div>
   );
 }

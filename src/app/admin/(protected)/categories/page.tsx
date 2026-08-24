@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, EyeOff } from "lucide-react";
+import { Plus, Pencil, EyeOff, Tags } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -117,7 +117,7 @@ export default function AdminCategoriesPage() {
             <Button type="button" variant="outline" className="w-full sm:w-auto font-semibold" onClick={() => setShowForm(false)}>
               Cancel
             </Button>
-            <Button type="submit" className="w-full sm:w-auto text-white font-semibold px-6" disabled={create.isPending || update.isPending || isImageUploading}>
+            <Button type="submit" className="w-full sm:w-auto text-black font-bold px-6" disabled={create.isPending || update.isPending || isImageUploading}>
               {create.isPending || update.isPending ? "Saving..." : "Save Category"}
             </Button>
           </div>
@@ -133,7 +133,7 @@ export default function AdminCategoriesPage() {
             <table className="w-full text-xs sm:text-sm">
               <thead>
                 <tr className="text-left text-secondary bg-surface-container-low border-b border-outline-variant/30 font-semibold">
-                  <th className="py-3 px-4">Name</th>
+                  <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Order</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Actions</th>
@@ -142,7 +142,29 @@ export default function AdminCategoriesPage() {
               <tbody>
                 {categories?.map((category) => (
                   <tr key={category.id} className="border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low/50 transition-colors">
-                    <td className="py-3 px-4 font-semibold text-on-surface">{category.name}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        {category.imageUrl ? (
+                          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg overflow-hidden bg-surface-container border border-outline-variant/40 shrink-0">
+                            <img
+                              src={category.imageUrl}
+                              alt={category.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-surface-container border border-outline-variant/40 flex items-center justify-center text-secondary/60 shrink-0">
+                            <Tags className="w-5 h-5 text-secondary/50" />
+                          </div>
+                        )}
+                        <div>
+                          <span className="font-bold text-on-surface text-xs sm:text-sm block">{category.name}</span>
+                          {category.description && (
+                            <p className="text-[11px] text-secondary line-clamp-1 max-w-xs">{category.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                     <td className="py-3 px-4 text-secondary font-medium">{category.displayOrder}</td>
                     <td className="py-3 px-4 font-semibold">
                       <span

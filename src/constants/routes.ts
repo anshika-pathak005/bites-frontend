@@ -19,6 +19,7 @@ export const ROUTES = {
     orders: "/admin/orders",
     menu: "/admin/menu",
     categories: "/admin/categories",
+    deliverySlabs: "/admin/delivery-slabs",
     customers: "/admin/customers",
     settings: "/admin/settings",
     profile: "/admin/profile",
