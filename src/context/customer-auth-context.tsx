@@ -73,6 +73,10 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     // Register callback for background 401 token refresh failures
     registerCustomerSessionExpiredCallback(() => {
       syncCustomerSession(null, null);
+      queryClient.setQueryData(queryKeys.cart.all, null);
+      queryClient.setQueryData(queryKeys.addresses.all, []);
+      queryClient.setQueryData(queryKeys.orders.myOrders, []);
+      queryClient.setQueryData(queryKeys.customer.recommendations, []);
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });
     });
 
@@ -105,6 +109,18 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       // Ignore network errors on logout — clear local session regardless
     }
     syncCustomerSession(null, null);
+
+    // Synchronously wipe every customer-scoped cache BEFORE refetching.
+    // Without this, invalidateQueries only marks the data stale — the old
+    // cart count/addresses/orders stay on screen until the refetch resolves,
+    // which is exactly the "stale count after logout" bug. Clearing first
+    // means the UI drops to empty immediately, then fills back in with
+    // whatever the fresh (now guest-scoped) cart actually contains.
+    queryClient.setQueryData(queryKeys.cart.all, null);
+    queryClient.setQueryData(queryKeys.addresses.all, []);
+    queryClient.setQueryData(queryKeys.orders.myOrders, []);
+    queryClient.setQueryData(queryKeys.customer.recommendations, []);
+
     await refreshUserCaches();
   };
 
