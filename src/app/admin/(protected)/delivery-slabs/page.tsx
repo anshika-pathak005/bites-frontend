@@ -38,7 +38,8 @@ export default function DeliverySlabsPage() {
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const { data: slabs = [], isLoading } = useAdminDeliverySlabs();
+  const { data: rawSlabs, isLoading } = useAdminDeliverySlabs();
+  const slabs = Array.isArray(rawSlabs) ? rawSlabs : [];
   const { createSlab, updateSlab, deleteSlab } = useDeliverySlabMutations();
 
   function openCreateForm() {

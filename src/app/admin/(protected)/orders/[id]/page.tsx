@@ -68,8 +68,8 @@ export default function AdminOrderDetailPage() {
         </div>
       )}
 
-      {/* Customer and delivery info side by side */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      {/* Customer, Delivery, and Payment info */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-2">
           <h3 className="font-headline-md text-lg sm:text-headline-md font-bold text-on-surface border-b border-outline-variant/30 pb-2 mb-3">Customer</h3>
           <p className="text-xs sm:text-sm"><span className="text-secondary font-medium">Name:</span> <span className="font-semibold text-on-surface">{order.customerName}</span></p>
@@ -78,6 +78,25 @@ export default function AdminOrderDetailPage() {
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-2">
           <h3 className="font-headline-md text-lg sm:text-headline-md font-bold text-on-surface border-b border-outline-variant/30 pb-2 mb-3">Delivery</h3>
           <p className="text-xs sm:text-sm"><span className="text-secondary font-medium">Address:</span> <span className="font-semibold text-on-surface">{order.deliveryAddress}</span></p>
+        </div>
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-2">
+          <h3 className="font-headline-md text-lg sm:text-headline-md font-bold text-on-surface border-b border-outline-variant/30 pb-2 mb-3">Payment</h3>
+          <p className="text-xs sm:text-sm flex items-center justify-between">
+            <span className="text-secondary font-medium">Method:</span>
+            <span className="font-bold text-on-surface uppercase">{order.paymentMethod || "COD"}</span>
+          </p>
+          <p className="text-xs sm:text-sm flex items-center justify-between pt-1">
+            <span className="text-secondary font-medium">Status:</span>
+            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+              order.paymentStatus === "PAID"
+                ? "bg-emerald-950/80 text-emerald-400 border-emerald-500/40"
+                : order.paymentStatus === "FAILED"
+                ? "bg-red-950/80 text-red-400 border-red-500/40"
+                : "bg-amber-950/80 text-amber-400 border-amber-500/40"
+            }`}>
+              {order.paymentStatus || "PENDING"}
+            </span>
+          </p>
         </div>
       </div>
 

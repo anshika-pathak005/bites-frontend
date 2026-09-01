@@ -102,6 +102,7 @@ export default function AdminOrdersPage() {
                   <th className="py-3 px-4">Order ID</th>
                   <th className="py-3 px-4">Customer</th>
                   <th className="py-3 px-4">Total</th>
+                  <th className="py-3 px-4">Payment</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Update</th>
                 </tr>
@@ -125,6 +126,22 @@ export default function AdminOrdersPage() {
                         <div className="text-xs text-secondary">{order.customerPhone}</div>
                       </td>
                       <td className="py-3 px-4 font-semibold text-on-surface whitespace-nowrap">{formatPrice(order.grandTotal)}</td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[11px] font-bold text-on-surface uppercase">
+                            {order.paymentMethod || "COD"}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border w-fit ${
+                            order.paymentStatus === "PAID"
+                              ? "bg-emerald-950/80 text-emerald-400 border-emerald-500/40"
+                              : order.paymentStatus === "FAILED"
+                              ? "bg-red-950/80 text-red-400 border-red-500/40"
+                              : "bg-amber-950/80 text-amber-400 border-amber-500/40"
+                          }`}>
+                            {order.paymentStatus || "PENDING"}
+                          </span>
+                        </div>
+                      </td>
                       <td className="py-3 px-4">
                         <OrderStatusBadge status={order.status} />
                       </td>

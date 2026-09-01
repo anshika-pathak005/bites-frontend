@@ -183,7 +183,7 @@ function OrderSuccessContent() {
           <Link href={`/track-order?orderNumber=${order.orderNumber}`} className="block w-full">
             <Button
               size="lg"
-              className="w-full text-white font-semibold rounded-xl py-6 text-sm sm:text-body-md shadow-md hover:shadow-lg transition-all cursor-pointer gap-2 group"
+              className="w-full text-black font-semibold rounded-xl py-6 text-sm sm:text-body-md shadow-md hover:shadow-lg transition-all cursor-pointer gap-2 group"
             >
               <span>Track Live Status</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

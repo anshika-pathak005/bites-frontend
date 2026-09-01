@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { queryKeys } from "@/lib/query/query-keys";
 import {
   fetchDeliverySlabs,
@@ -24,18 +25,36 @@ export function useDeliverySlabMutations() {
 
   const createMutation = useMutation({
     mutationFn: createDeliverySlab,
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success("Delivery pricing slab created");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to create delivery charge slab");
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number | string; payload: DeliveryChargeSlabPayload }) =>
       updateDeliverySlab(id, payload),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success("Delivery pricing slab updated");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to update delivery charge slab");
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number | string) => deleteDeliverySlab(id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success("Delivery pricing slab deleted");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to delete delivery charge slab");
+    },
   });
 
   return {

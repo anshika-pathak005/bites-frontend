@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -27,7 +28,7 @@ function isValidImageUrl(url: string | null | undefined): boolean {
 
 // Guest shopping cart page — lists items, lets the guest adjust quantity/remove with confirmation, and links to checkout.
 export default function CartPage() {
-  const { cartQuery, updateQuantity, removeItem } = useCart();
+  const { cartQuery, addItem, updateQuantity, removeItem } = useCart();
   const cart = cartQuery.data;
 
   // Item pending deletion confirmation (null means delete modal is closed)
@@ -36,6 +37,43 @@ export default function CartPage() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [hasBackup, setHasBackup] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const backup = localStorage.getItem("bites_cart_backup");
+      if (backup) {
+        try {
+          const parsed = JSON.parse(backup);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setHasBackup(true);
+          }
+        } catch {}
+      }
+    }
+  }, []);
+
+  async function handleRestoreCart() {
+    setIsRestoring(true);
+    try {
+      const backup = localStorage.getItem("bites_cart_backup");
+      if (backup) {
+        const items = JSON.parse(backup) as { menuItemId: string; quantity: number }[];
+        for (const item of items) {
+          await addItem.mutateAsync({ menuItemId: item.menuItemId, quantity: item.quantity });
+        }
+        localStorage.removeItem("bites_cart_backup");
+        setHasBackup(false);
+        toast.success("Cart items restored successfully!");
+      }
+    } catch {
+      toast.error("Failed to restore some cart items.");
+    } finally {
+      setIsRestoring(false);
+    }
+  }
 
   // Block rendering until the cart session has loaded
   if (cartQuery.isLoading) {
@@ -101,6 +139,23 @@ export default function CartPage() {
         )}
       </div>
 
+      {hasBackup && isEmpty && (
+        <div className="bg-primary/10 border border-primary/20 p-5 rounded-3xl max-w-md mx-auto mb-8 text-center space-y-3.5 shadow-md">
+          <p className="text-xs sm:text-sm text-secondary font-medium">
+            It looks like your payment was not completed, but your cart items were saved.
+          </p>
+          <Button
+            size="md"
+            onClick={handleRestoreCart}
+            disabled={isRestoring}
+            className="text-black font-semibold rounded-xl px-6 py-2.5 cursor-pointer"
+          >
+            {isRestoring ? <Spinner className="w-4 h-4 text-black inline mr-2" /> : null}
+            Restore Cart Items
+          </Button>
+        </div>
+      )}
+
       {isEmpty ? (
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-8 sm:p-12 text-center max-w-md mx-auto shadow-sm my-8 space-y-4">
           <div className="w-16 h-16 rounded-full bg-primary-fixed/40 text-primary flex items-center justify-center mx-auto mb-2">
@@ -112,7 +167,7 @@ export default function CartPage() {
           </p>
           <div className="pt-2">
             <Link href={ROUTES.menu}>
-              <Button size="lg" className="rounded-full px-8 gap-2 font-semibold cursor-pointer text-white">
+              <Button size="lg" className="rounded-full px-8 gap-2 font-semibold cursor-pointer text-black">
                 Browse Our Menu
                 <ArrowRight className="w-4 h-4" />
               </Button>

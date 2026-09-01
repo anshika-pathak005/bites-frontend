@@ -26,6 +26,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -33,11 +34,13 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatPrice, cn } from "@/lib/utils";
 import { ROUTES } from "@/constants/routes";
 import { useCustomerAuth } from "@/context/customer-auth-context";
+import { useVerifyPayment } from "@/features/checkout/hooks/use-checkout";
 import {
   useMyOrders,
   useTrackOrderMutation,
   useCancelOrder,
 } from "@/features/orders/hooks/use-track-order";
+import { OrderStatusBadge } from "@/components/ui/order-status-badge";
 import { ORDER_STATUS_LABELS } from "@/constants/order-status";
 import type { Order, OrderStatus } from "@/types/order.types";
 
@@ -143,10 +146,28 @@ function TrackOrderContent() {
   const [trackedOrder, setTrackedOrder] = useState<Order | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
+  const [activeTab, setActiveTab] = useState<"orders" | "search">("orders");
 
   const myOrdersQuery = useMyOrders();
   const trackOrderMutation = useTrackOrderMutation();
   const cancelOrderMutation = useCancelOrder();
+
+  const myOrders = myOrdersQuery.data || [];
+  const hasMyOrders = myOrders.length > 0;
+
+  // Auto-switch to search tab if navigated via direct order link
+  useEffect(() => {
+    if (urlOrderNumber) {
+      setActiveTab("search");
+    }
+  }, [urlOrderNumber]);
+
+  // If guest has no session orders, enforce the search tab
+  useEffect(() => {
+    if (!isAuthenticated && !hasMyOrders) {
+      setActiveTab("search");
+    }
+  }, [isAuthenticated, hasMyOrders]);
 
   useEffect(() => {
     if (urlOrderNumber) {
@@ -188,9 +209,6 @@ function TrackOrderContent() {
     });
   }
 
-  const myOrders = myOrdersQuery.data || [];
-  const hasMyOrders = myOrders.length > 0;
-
   return (
     <div className="px-margin-mobile md:px-margin-desktop max-w-5xl lg:max-w-6xl mx-auto py-stack-md sm:py-stack-lg space-y-6 sm:space-y-8">
       {/* Header */}
@@ -199,33 +217,78 @@ function TrackOrderContent() {
           Track Your Order Live
         </h1>
         <p className="text-xs sm:text-sm text-secondary mt-1.5 leading-relaxed">
-          Monitor your midnight culinary delivery progress in real-time or search by Order ID.
+          {isAuthenticated
+            ? "Monitor your midnight culinary delivery progress in real-time."
+            : "Monitor your session orders or track any delivery live by Order ID."}
         </p>
       </div>
 
-      {/* Quick Search Bar */}
-      <form onSubmit={handleSearchSubmit} className="flex gap-2.5 sm:gap-3 max-w-xl mx-auto">
-        <div className="relative flex-grow">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
-          <Input
-            className="pl-11 py-3 text-sm rounded-xl shadow-xs"
-            placeholder="Enter your Order ID (e.g. ORD-987654)"
-            value={searchOrderNumber}
-            onChange={(e) => setSearchOrderNumber(e.target.value)}
-          />
+      {/* Guest Tab Switcher (Only shown if guest has session orders) */}
+      {!isAuthenticated && hasMyOrders && (
+        <div className="flex justify-center mb-2">
+          <div className="bg-surface-container border border-outline-variant/30 p-1 rounded-2xl flex gap-1 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setActiveTab("orders")}
+              className={cn(
+                "px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer select-none",
+                activeTab === "orders"
+                  ? "bg-primary text-black shadow-md shadow-primary/10"
+                  : "text-secondary hover:text-on-surface hover:bg-surface-container-high"
+              )}
+            >
+              All Your Orders
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("search")}
+              className={cn(
+                "px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer select-none",
+                activeTab === "search"
+                  ? "bg-primary text-black shadow-md shadow-primary/10"
+                  : "text-secondary hover:text-on-surface hover:bg-surface-container-high"
+              )}
+            >
+              Track by Order ID
+            </button>
+          </div>
         </div>
-        <Button
-          type="submit"
-          size="md"
-          className="text-black font-bold px-6 sm:px-8 rounded-xl glow-hover"
-          disabled={trackOrderMutation.isPending}
-        >
-          {trackOrderMutation.isPending ? <Spinner className="w-4 h-4 text-black" /> : "Track"}
-        </Button>
-      </form>
+      )}
+
+      {/* Quick Search Bar (For Guest Search View / No Session Orders View) */}
+      {!isAuthenticated && activeTab === "search" && (
+        <div className="space-y-4">
+          {!hasMyOrders && (
+            <div className="max-w-xl mx-auto text-center mb-1">
+              <p className="text-secondary text-xs sm:text-sm">
+                Enter your Order ID to track status.
+              </p>
+            </div>
+          )}
+          <form onSubmit={handleSearchSubmit} className="flex gap-2.5 sm:gap-3 max-w-xl mx-auto">
+            <div className="relative flex-grow">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+              <Input
+                className="pl-11 py-3 text-sm rounded-xl shadow-xs"
+                placeholder="Enter your Order ID (e.g. ORD-987654)"
+                value={searchOrderNumber}
+                onChange={(e) => setSearchOrderNumber(e.target.value)}
+              />
+            </div>
+            <Button
+              type="submit"
+              size="md"
+              className="text-black font-bold px-6 sm:px-8 rounded-xl glow-hover cursor-pointer"
+              disabled={trackOrderMutation.isPending}
+            >
+              {trackOrderMutation.isPending ? <Spinner className="w-4 h-4 text-black" /> : "Track"}
+            </Button>
+          </form>
+        </div>
+      )}
 
       {/* Single Search Result View */}
-      {hasSearched && (
+      {!isAuthenticated && activeTab === "search" && hasSearched && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-secondary">
@@ -245,7 +308,7 @@ function TrackOrderContent() {
           {trackedOrder ? (
             <OrderTrackingCard
               order={trackedOrder}
-              defaultExpanded={true}
+              defaultExpanded={false}
               onCancelClick={(order) => setCancellingOrder(order)}
             />
           ) : (
@@ -259,7 +322,36 @@ function TrackOrderContent() {
         </div>
       )}
 
-      {/* Accordion Order List for Logged-In Users */}
+      {/* Guest: Accordion Order List under orders tab */}
+      {!isAuthenticated && activeTab === "orders" && hasMyOrders && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+            <h2 className="text-base sm:text-lg font-bold text-on-surface">
+              Session Orders ({myOrders.length})
+            </h2>
+            <button
+              onClick={() => myOrdersQuery.refetch()}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-primary transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Refresh
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {myOrders.map((order) => (
+              <OrderTrackingCard
+                key={order.id || order.orderNumber}
+                order={order}
+                defaultExpanded={false}
+                onCancelClick={(ord) => setCancellingOrder(ord)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Logged-In Users: Accordion Order List (Always show all, no switcher/search) */}
       {isAuthenticated && (
         hasMyOrders ? (
           <div className="space-y-4">
@@ -277,32 +369,30 @@ function TrackOrderContent() {
             </div>
 
             <div className="space-y-3">
-              {myOrders.map((order, idx) => (
+              {myOrders.map((order) => (
                 <OrderTrackingCard
                   key={order.id || order.orderNumber}
                   order={order}
-                  defaultExpanded={idx === 0}
+                  defaultExpanded={false}
                   onCancelClick={(ord) => setCancellingOrder(ord)}
                 />
               ))}
             </div>
           </div>
         ) : (
-          !hasSearched && (
-            <div className="flex flex-col items-center gap-4 py-16 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-8 shadow-sm max-w-lg mx-auto">
-              <div className="w-14 h-14 rounded-full bg-surface-container border border-outline-variant/30 text-primary flex items-center justify-center">
-                <Package className="w-7 h-7" />
-              </div>
-              <div>
-                <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface">
-                  No Active Orders Found
-                </h3>
-                <p className="text-secondary text-xs sm:text-sm mt-1 max-w-sm">
-                  Enter your Order ID above to track live delivery status.
-                </p>
-              </div>
+          <div className="flex flex-col items-center gap-4 py-16 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-3xl p-8 shadow-sm max-w-lg mx-auto">
+            <div className="w-14 h-14 rounded-full bg-surface-container border border-outline-variant/30 text-primary flex items-center justify-center">
+              <Package className="w-7 h-7" />
             </div>
-          )
+            <div>
+              <h3 className="font-headline-md text-base sm:text-lg font-bold text-on-surface">
+                No Orders Placed Yet
+              </h3>
+              <p className="text-secondary text-xs sm:text-sm mt-1 max-w-sm">
+                Browse our delicious menu and place your first midnight gourmet order!
+              </p>
+            </div>
+          </div>
         )
       )}
 
@@ -394,12 +484,63 @@ function OrderTrackingCard({
 }) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [copied, setCopied] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const verifyPaymentMutation = useVerifyPayment();
 
   function copyOrderNumber(e: React.MouseEvent) {
     e.stopPropagation();
     navigator.clipboard.writeText(order.orderNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleRetryOnlinePayment(e: React.MouseEvent) {
+    e.stopPropagation();
+    setRetryError(null);
+
+    if (!order.razorpayOrderId || !order.razorpayKeyId) {
+      setRetryError("Online payment details missing.");
+      return;
+    }
+
+    const options = {
+      key: order.razorpayKeyId,
+      amount: Math.round(order.grandTotal * 100),
+      currency: "INR",
+      name: "Bites",
+      description: `Order #${order.orderNumber}`,
+      order_id: order.razorpayOrderId,
+      handler: async function (response: any) {
+        try {
+          const verified = await verifyPaymentMutation.mutateAsync({
+            orderNumber: order.orderNumber,
+            payload: {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            },
+          });
+          if (verified) {
+            toast.success("Payment completed successfully!");
+            window.location.reload();
+          }
+        } catch (err: any) {
+          setRetryError(err instanceof Error ? err.message : "Payment verification failed.");
+        }
+      },
+      prefill: {
+        name: order.customerName,
+        contact: order.customerPhone,
+      },
+      theme: { color: "#F97316" },
+    };
+
+    if (typeof window !== "undefined" && window.Razorpay) {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } else {
+      setRetryError("Razorpay SDK is loading. Please wait a moment.");
+    }
   }
 
   const isCancelled = order.status === "CANCELLED";
@@ -433,26 +574,26 @@ function OrderTrackingCard({
             <Package className="w-5 h-5" />
           </div>
 
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm sm:text-base text-on-surface">
-                Order #{order.orderNumber}
-              </span>
+          <div className="space-y-1">
+            <h4 className="font-bold text-sm sm:text-base text-on-surface line-clamp-1 max-w-md">
+              {itemsSummary}
+            </h4>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-secondary">
+              <span className="font-medium">Order #{order.orderNumber}</span>
               <button
                 onClick={copyOrderNumber}
-                className="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors cursor-pointer"
+                className="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors cursor-pointer shrink-0"
                 title="Copy Order ID"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3 h-3.5 text-green-600 inline" /> : <Copy className="w-3 h-3.5 inline" />}
               </button>
+              {order.placedAt && (
+                <span className="flex items-center gap-1 text-[11px] text-secondary/80 shrink-0">
+                  <Clock className="w-3 h-3 text-secondary/60 inline" />
+                  {formatOrderDate(order.placedAt)}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-secondary line-clamp-1 max-w-md">{itemsSummary}</p>
-            {order.placedAt && (
-              <p className="text-[11px] text-secondary/80 flex items-center gap-1 pt-0.5">
-                <Clock className="w-3 h-3 text-secondary/60 inline" />
-                {formatOrderDate(order.placedAt)}
-              </p>
-            )}
           </div>
         </div>
 
@@ -460,19 +601,9 @@ function OrderTrackingCard({
         <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-outline-variant/20">
           <div className="text-left sm:text-right">
             <p className="text-sm sm:text-base font-bold text-primary">{formatPrice(grandTotal)}</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span
-                className={cn(
-                  "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                  isCancelled
-                    ? "bg-red-950/80 text-red-400 border border-red-500/40"
-                    : isDelivered
-                    ? "bg-emerald-950/80 text-emerald-400 border border-emerald-500/40"
-                    : "bg-primary-fixed text-on-primary-fixed-variant"
-                )}
-              >
-                {ORDER_STATUS_LABELS[order.status] || order.status}
-              </span>
+            <div className="flex flex-wrap items-center gap-1.5 mt-1 sm:justify-end">
+              <PaymentStatusBadge status={order.paymentStatus} />
+              <OrderStatusBadge status={order.status} />
             </div>
           </div>
 
@@ -613,6 +744,32 @@ function OrderTrackingCard({
                   <span>Total Amount</span>
                   <span className="text-primary">{formatPrice(grandTotal)}</span>
                 </div>
+
+                {/* Online Payment Pending Retry CTA */}
+                {order.paymentMethod === "ONLINE" &&
+                  order.paymentStatus !== "PAID" &&
+                  !isCancelled && (
+                    <div className="pt-3 border-t border-outline-variant/20 space-y-2">
+                      {retryError && (
+                        <p className="text-[11px] text-error font-medium">{retryError}</p>
+                      )}
+                      <Button
+                        type="button"
+                        onClick={handleRetryOnlinePayment}
+                        className="w-full text-black font-bold py-2.5 rounded-xl glow-hover flex items-center justify-center gap-2 text-xs"
+                        disabled={verifyPaymentMutation.isPending}
+                      >
+                        {verifyPaymentMutation.isPending ? (
+                          <Spinner className="w-4 h-4 text-black" />
+                        ) : (
+                          <>
+                            <CreditCard className="w-4 h-4 text-black" />
+                            <span>Complete Online Payment (Razorpay)</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
               </div>
             </div>
           </div>
@@ -625,7 +782,7 @@ function OrderTrackingCard({
                 variant="outline"
                 size="sm"
                 onClick={() => onCancelClick(order)}
-                className="text-error border-error/40 hover:bg-error-container/20 hover:border-error rounded-xl text-xs font-semibold px-4 py-2"
+                className="text-error border-error/40 hover:bg-error-container/20 hover:border-error rounded-xl text-xs font-semibold px-4 py-2 cursor-pointer"
               >
                 Cancel Order
               </Button>

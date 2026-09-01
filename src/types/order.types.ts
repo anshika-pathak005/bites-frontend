@@ -8,6 +8,9 @@ export type OrderStatus =
   | "DELIVERED"
   | "CANCELLED";
 
+export type PaymentMethod = "COD" | "ONLINE";
+export type PaymentStatus = "PENDING" | "PAID" | "FAILED";
+
 // A line item snapshot on a placed order (price/name captured at order time).
 export interface OrderItem {
   id: string | number;
@@ -35,8 +38,10 @@ export interface Order {
   deliveryCharge: number;
   subtotal: number;
   grandTotal: number;
-  paymentMethod?: string;
-  paymentStatus?: string;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  razorpayOrderId?: string | null;
+  razorpayKeyId?: string | null;
   placedAt: string;
   cancellable?: boolean;
   cancelReason?: string;
@@ -51,7 +56,14 @@ export interface CheckoutPayload {
   pincode: string;
   latitude: number;
   longitude: number;
-  // Omit both for Cart Flow; set both for Buy Now Flow
-  buyNowMenuItemId?: string;
-  buyNowQuantity?: number;
+  buyNowMenuItemId?: string | null;
+  buyNowQuantity?: number | null;
+  paymentMethod: PaymentMethod;
+}
+
+// Request body for verifying Razorpay online payment.
+export interface VerifyPaymentPayload {
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
 }

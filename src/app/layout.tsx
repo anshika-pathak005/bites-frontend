@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import Script from "next/script";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/lib/query/query-provider";
 import "./globals.css";
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=Plus+Jakarta+Sans:wght@500..800&display=swap"
           rel="stylesheet"
         />
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       </head>
       <body className="bg-surface text-on-surface font-body-md antialiased selection:bg-primary-container selection:text-surface">
         <QueryProvider>
@@ -42,17 +44,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Toaster
             position="top-center"
             theme="dark"
+            richColors
             toastOptions={{
-              style: {
-                background: "#1c1b1b",
-                border: "1px solid rgba(80, 69, 56, 0.6)",
-                color: "#e5e2e1",
-                borderRadius: "1rem",
-                fontSize: "13px",
-                fontWeight: "600",
-                boxShadow: "0 12px 35px rgba(0, 0, 0, 0.85)",
+              classNames: {
+                toast: "font-body-md border rounded-2xl p-4 shadow-2xl backdrop-blur-md text-xs sm:text-sm font-semibold",
+                success: "!bg-emerald-950/95 !text-emerald-200 !border-emerald-500/50 [&>svg]:!text-emerald-400 font-semibold shadow-emerald-950/40",
+                error: "!bg-red-950/95 !text-red-200 !border-red-500/50 [&>svg]:!text-red-400 font-semibold shadow-red-950/40",
+                info: "!bg-surface-container-high/95 !text-on-surface !border-outline-variant/40 [&>svg]:!text-primary font-semibold",
+                warning: "!bg-amber-950/95 !text-amber-200 !border-amber-500/50 [&>svg]:!text-amber-400 font-semibold shadow-amber-950/40",
               },
-              className: "font-body-md",
             }}
           />
         </QueryProvider>
