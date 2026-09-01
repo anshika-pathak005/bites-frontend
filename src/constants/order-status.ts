@@ -5,12 +5,12 @@ import type { OrderStatus } from "@/types/order.types";
 
 // Human-readable label for each order status, used in UI badges/text.
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  PENDING: "Pending",
-  ACCEPTED: "Accepted",
-  PREPARING: "Preparing",
-  OUT_FOR_DELIVERY: "Out for delivery",
-  DELIVERED: "Delivered",
-  CANCELLED: "Cancelled",
+  PENDING: "Order Pending",
+  ACCEPTED: "Order Accepted",
+  PREPARING: "Preparing Order",
+  OUT_FOR_DELIVERY: "Out for Delivery",
+  DELIVERED: "Order Delivered",
+  CANCELLED: "Order Cancelled",
 };
 
 // Mirrors the backend state machine — the only status a given status can move to.

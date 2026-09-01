@@ -111,7 +111,7 @@ export default function CartPage() {
           <h1 className="font-headline-lg text-headline-md sm:text-headline-lg text-on-surface flex items-center gap-3">
             Shopping Cart
             {!isEmpty && (
-              <span className="inline-flex items-center justify-center bg-primary-fixed text-on-primary-fixed-variant text-label-sm font-bold px-2.5 py-0.5 rounded-full text-xs sm:text-sm">
+              <span className="inline-flex items-center justify-center bg-primary-fixed text-black text-label-sm font-bold px-2.5 py-0.5 rounded-full text-xs sm:text-sm">
                 {itemCount} {itemCount === 1 ? "item" : "items"}
               </span>
             )}
@@ -338,7 +338,7 @@ export default function CartPage() {
 
             <div className="pt-2 space-y-3">
               <Link href={ROUTES.checkout} className="block w-full">
-                <Button size="lg" className="w-full text-body-md font-bold gap-2 py-6 rounded-xl text-black cursor-pointer">
+                <Button size="lg" className="w-full text-body-md font-bold gap-2 rounded-xl text-black cursor-pointer">
                   Proceed to Checkout
                   <ArrowRight className="w-4 h-4 text-black" />
                 </Button>
@@ -360,7 +360,7 @@ export default function CartPage() {
               <span className="text-primary font-bold text-xl">{formatPrice(cart.subtotal)}</span>
             </div>
             <Link href={ROUTES.checkout} className="flex-1 max-w-[200px]">
-              <Button size="lg" className="w-full text-sm font-bold gap-1.5 py-5 rounded-xl shadow-md text-black cursor-pointer">
+              <Button size="lg" className="w-full text-sm font-bold gap-1.5 rounded-xl shadow-md text-black cursor-pointer">
                 Checkout
                 <ArrowRight className="w-4 h-4 text-black" />
               </Button>

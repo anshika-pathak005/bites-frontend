@@ -27,7 +27,7 @@ export function RecommendationsSection() {
             <span className="text-[11px] font-bold tracking-wider uppercase">Crafted For Your Taste</span>
           </div>
           <h2 className="font-headline-lg text-2xl sm:text-3xl font-bold text-on-surface">
-            Recommended For You
+            Your Usuals
           </h2>
         </div>
         <p className="text-xs sm:text-sm text-secondary max-w-sm">

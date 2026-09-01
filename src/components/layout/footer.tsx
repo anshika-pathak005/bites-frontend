@@ -90,30 +90,12 @@ export function Footer() {
           >
             About Us
           </Link>
-          <a
-            href="#"
+          <Link
+            href={ROUTES.contact}
             className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
           >
-            Privacy Policy
-          </a>
-          <a
-            href="#"
-            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
-          >
-            Terms of Service
-          </a>
-          <a
-            href="#"
-            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
-          >
-            Shipping Info
-          </a>
-          <a
-            href="#"
-            className="text-on-surface-variant hover:text-primary transition-colors font-body-md"
-          >
-            Careers
-          </a>
+            Contact
+          </Link>
         </div>
 
         {/* Copyright Footer */}

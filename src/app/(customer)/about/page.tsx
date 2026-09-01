@@ -15,7 +15,7 @@ export default function AboutPage() {
           <Sparkles className="w-3.5 h-3.5 text-primary" />
           <span className="text-[11px] font-bold tracking-wider uppercase">Our Journey & Passion</span>
         </div>
-        <h1 className="font-headline-lg text-3xl sm:text-4xl lg:text-5xl font-bold text-on-surface tracking-tight">
+        <h1 className="font-headline-lg text-2xl sm:text-headline-lg font-bold text-on-surface tracking-tight">
           Crafting Unforgettable Culinary Moments
         </h1>
         <p className="text-sm sm:text-base text-secondary leading-relaxed">
@@ -46,8 +46,9 @@ export default function AboutPage() {
             alt="Bites Gourmet Kitchen"
             width={600}
             height={600}
-            className="object-cover"
+            className="object-cover brightness-75"
           />
+          <div className="absolute inset-0 bg-black/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
           <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-white text-xs">
             <p className="font-bold text-primary">Farm Fresh & Handcrafted Daily</p>
@@ -150,7 +151,7 @@ export default function AboutPage() {
       {/* Bottom Action CTA */}
       <div className="text-center pt-4">
         <Link href={ROUTES.menu}>
-          <button className="bg-primary text-surface px-8 py-3.5 rounded-xl font-bold text-sm glow-hover inline-flex items-center gap-2 cursor-pointer shadow-lg shadow-primary-container/20">
+          <button className="bg-primary text-black px-8 py-3.5 rounded-xl font-bold text-sm glow-hover inline-flex items-center gap-2 cursor-pointer shadow-lg shadow-primary-container/20">
             <span>Explore Midnight Menu</span>
             <ArrowRight className="w-4 h-4" />
           </button>

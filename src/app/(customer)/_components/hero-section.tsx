@@ -16,7 +16,7 @@ export function HeroSection() {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[center_35%] sm:object-[center_30%] brightness-[0.7] contrast-[1.7] blur-[1px]"
+          className="object-cover object-[center_32%] sm:object-[center_30%] scale-105 sm:scale-100 brightness-[0.7] contrast-[1.7] blur-[1px]"
         />
         {/* Transparent atmospheric gradient */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-surface" />

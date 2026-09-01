@@ -152,7 +152,7 @@ export function Navbar() {
           >
             <ShoppingCart className="w-5 h-5 transition-transform duration-200 group-hover:scale-110" />
             {itemCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-primary-container text-surface text-[11px] font-bold flex items-center justify-center shadow-glow animate-success-pop">
+              <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-primary-container text-black text-[11px] font-bold flex items-center justify-center shadow-glow animate-success-pop">
                 {itemCount}
               </span>
             )}
@@ -166,7 +166,7 @@ export function Navbar() {
                   onClick={() => setUserDropdownOpen((prev) => !prev)}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container border border-outline-variant/40 hover:border-primary-container/60 text-on-surface transition-all cursor-pointer"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-primary-container text-surface font-bold text-xs flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-lg bg-primary-container text-black font-bold text-xs flex items-center justify-center">
                     {customer.name.charAt(0).toUpperCase()}
                   </div>
                   <span className="text-xs font-semibold max-w-[100px] truncate">{customer.name}</span>
@@ -247,7 +247,7 @@ export function Navbar() {
             {isAuthenticated && customer ? (
               <div className="p-3 rounded-2xl bg-surface-container border border-outline-variant/30 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-primary-container text-surface font-bold text-sm flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-primary-container text-black font-bold text-sm flex items-center justify-center">
                     {customer.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -258,7 +258,7 @@ export function Navbar() {
                 <Link
                   href={ROUTES.profile}
                   onClick={() => setIsOpen(false)}
-                  className="px-3 py-1.5 rounded-xl bg-surface-container-high text-xs font-semibold text-primary hover:bg-primary hover:text-surface transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-surface-container-high text-xs font-semibold text-primary hover:bg-primary hover:text-black transition-colors"
                 >
                   Profile
                 </Link>

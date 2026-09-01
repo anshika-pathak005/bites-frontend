@@ -75,7 +75,7 @@ export function CategoriesSection() {
 
         {/* Categories Carousel */}
         {categories && categories.length > 0 && (
-          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-margin-mobile px-margin-mobile md:-mx-0 md:px-0">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {categories.map((category, index) => (
               <CategoryCard
                 key={category.id}
@@ -144,7 +144,7 @@ function CategoryCard({ category, fallbackImage }: { category: Category; fallbac
         </div>
 
         {/* Explore Button */}
-        <div className="w-full py-2.5 px-4 rounded-xl bg-surface-container-low border border-outline-variant/40 group-hover:border-primary-container/60 group-hover:bg-primary-container group-hover:text-surface text-primary-container font-body-md text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-between">
+        <div className="w-full py-2.5 px-4 rounded-xl bg-surface-container-low border border-outline-variant/40 group-hover:border-primary-container/60 group-hover:bg-primary-container group-hover:text-black text-primary-container font-body-md text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-between">
           <span>Explore Category</span>
           <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
         </div>

@@ -584,7 +584,7 @@ function CheckoutPageContent() {
           <Button
             type="submit"
             size="lg"
-            className="w-full text-black font-bold py-6 rounded-xl cursor-pointer"
+            className="w-full text-black font-bold rounded-xl cursor-pointer"
             disabled={
               placeOrder.isPending ||
               verifyPaymentMutation.isPending ||

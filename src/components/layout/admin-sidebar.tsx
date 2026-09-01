@@ -105,7 +105,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-lg font-label-md text-label-md transition-colors",
-                isActive ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-variant"
+                isActive ? "bg-primary text-black" : "text-on-surface hover:bg-surface-variant"
               )}
             >
               <Icon className="w-4 h-4" />

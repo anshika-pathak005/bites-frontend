@@ -110,7 +110,7 @@ function MenuPageContent() {
           className={cn(
             "px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-xs sm:text-label-md font-semibold transition-all duration-200 cursor-pointer select-none",
             activeCategoryId === undefined
-              ? "bg-primary text-white shadow-sm"
+              ? "bg-primary text-black shadow-sm"
               : "bg-surface-container-high text-on-surface hover:bg-primary-fixed hover:text-on-primary-fixed-variant"
           )}
         >
@@ -123,7 +123,7 @@ function MenuPageContent() {
             className={cn(
               "px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-xs sm:text-label-md font-semibold transition-all duration-200 cursor-pointer select-none",
               activeCategoryId === category.id
-                ? "bg-primary text-white shadow-sm"
+                ? "bg-primary text-black shadow-sm"
                 : "bg-surface-container-high text-on-surface hover:bg-primary-fixed hover:text-on-primary-fixed-variant"
             )}
           >
@@ -196,7 +196,7 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
       className={cn(
         "px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-label-sm font-semibold border transition-all duration-200 cursor-pointer select-none",
         active
-          ? "bg-primary-fixed border-primary text-on-primary-fixed-variant shadow-sm"
+          ? "bg-primary-fixed border-primary text-black shadow-sm"
           : "border-outline-variant/60 text-on-surface-variant hover:bg-surface-variant"
       )}
     >

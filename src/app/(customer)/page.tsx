@@ -10,11 +10,11 @@ export default function HomePage() {
   return (
     <div className="flex flex-col gap-y-4 sm:gap-y-8">
       <HeroSection />
-      <CategoriesSection />
-      <FeaturesSection />
       <div className="px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full">
         <RecommendationsSection />
       </div>
+      <CategoriesSection />
+      <FeaturesSection />
       <CtaBanner />
       <TestimonialsSection />
     </div>

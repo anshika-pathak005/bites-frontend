@@ -89,7 +89,7 @@ export function MenuPreviewSection() {
             className={cn(
               "px-5 py-2 rounded-full font-body-md text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none",
               selectedCategoryId === undefined
-                ? "bg-primary-container text-surface shadow-glow"
+                ? "bg-primary-container text-black shadow-glow"
                 : "bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:border-primary-container hover:text-primary-fixed"
             )}
           >
@@ -102,7 +102,7 @@ export function MenuPreviewSection() {
               className={cn(
                 "px-5 py-2 rounded-full font-body-md text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer select-none",
                 selectedCategoryId === cat.id
-                  ? "bg-primary-container text-surface shadow-glow"
+                  ? "bg-primary-container text-black shadow-glow"
                   : "bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:border-primary-container hover:text-primary-fixed"
               )}
             >
@@ -174,7 +174,7 @@ export function MenuPreviewSection() {
                     ${item.price}
                   </span>
                   <Link href={ROUTES.menu}>
-                    <button className="py-2 px-4 border border-primary-container/60 text-primary-container rounded-xl font-body-md text-xs font-semibold hover:bg-primary-container hover:text-surface transition-all duration-200 flex items-center gap-1.5 cursor-pointer">
+                    <button className="py-2 px-4 border border-primary-container/60 text-primary-container rounded-xl font-body-md text-xs font-semibold hover:bg-primary-container hover:text-black transition-all duration-200 flex items-center gap-1.5 cursor-pointer">
                       <Plus className="w-3.5 h-3.5" /> Order
                     </button>
                   </Link>
@@ -188,7 +188,7 @@ export function MenuPreviewSection() {
       {/* Explore Full Menu Action */}
       <div className="text-center">
         <Link href={ROUTES.menu}>
-          <button className="bg-primary-container text-white px-7 py-3 rounded-xl font-body-md text-sm font-semibold hover:bg-primary-fixed hover:scale-105 transition-all duration-200 glow-hover inline-flex items-center gap-2 shadow-lg shadow-primary-container/25 cursor-pointer">
+          <button className="bg-primary-container text-black px-7 py-3 rounded-xl font-body-md text-sm font-semibold hover:bg-primary-fixed hover:scale-105 transition-all duration-200 glow-hover inline-flex items-center gap-2 shadow-lg shadow-primary-container/25 cursor-pointer">
             <span>Explore Full Menu</span>
             <ArrowRight className="w-4 h-4" />
           </button>
@@ -253,7 +253,7 @@ function DishCard({
           <button
             onClick={onAddToCart}
             disabled={!item.isAvailable || isPending}
-            className="py-2 px-3.5 border border-primary-container/60 text-primary-container rounded-xl font-body-md text-xs font-semibold hover:bg-primary-container hover:text-surface transition-all duration-200 flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+            className="py-2 px-3.5 border border-primary-container/60 text-primary-container rounded-xl font-body-md text-xs font-semibold hover:bg-primary-container hover:text-black transition-all duration-200 flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
           >
             <ShoppingCart className="w-3.5 h-3.5" />
             <span>Add</span>

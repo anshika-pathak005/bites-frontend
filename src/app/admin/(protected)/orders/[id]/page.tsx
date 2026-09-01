@@ -60,7 +60,7 @@ export default function AdminOrderDetailPage() {
               key={s}
               onClick={() => updateStatus.mutate({ id: order.id, status: s })}
               disabled={updateStatus.isPending}
-              className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-primary text-white text-xs sm:text-sm font-semibold hover:scale-[1.02] transition-all shadow-md active:scale-95 disabled:opacity-50"
+              className="px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-primary text-black text-xs sm:text-sm font-semibold hover:scale-[1.02] transition-all shadow-md active:scale-95 disabled:opacity-50"
             >
               Mark as {ORDER_STATUS_LABELS[s]}
             </button>

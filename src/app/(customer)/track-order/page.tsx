@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Search,
   Package,
@@ -34,6 +34,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatPrice, cn } from "@/lib/utils";
 import { ROUTES } from "@/constants/routes";
 import { useCustomerAuth } from "@/context/customer-auth-context";
+import { useCart } from "@/features/cart/hooks/use-cart";
 import { useVerifyPayment } from "@/features/checkout/hooks/use-checkout";
 import {
   useMyOrders,
@@ -139,6 +140,7 @@ function OrderTrackFallback() {
 
 function TrackOrderContent() {
   const { isAuthenticated } = useCustomerAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const urlOrderNumber = searchParams.get("orderNumber");
 
@@ -147,10 +149,12 @@ function TrackOrderContent() {
   const [hasSearched, setHasSearched] = useState(false);
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
   const [activeTab, setActiveTab] = useState<"orders" | "search">("orders");
+  const [reorderingId, setReorderingId] = useState<string | number | null>(null);
 
   const myOrdersQuery = useMyOrders();
   const trackOrderMutation = useTrackOrderMutation();
   const cancelOrderMutation = useCancelOrder();
+  const { addItem } = useCart();
 
   const myOrders = myOrdersQuery.data || [];
   const hasMyOrders = myOrders.length > 0;
@@ -207,6 +211,27 @@ function TrackOrderContent() {
         }
       },
     });
+  }
+
+  // Adds every line item from a past order back into the cart, then sends the customer to review it.
+  async function handleReorder(order: Order) {
+    if (!order.items || order.items.length === 0) {
+      toast.error("This order has no items to reorder.");
+      return;
+    }
+
+    setReorderingId(order.id);
+    try {
+      for (const item of order.items) {
+        await addItem.mutateAsync({ menuItemId: String(item.menuItemId), quantity: item.quantity });
+      }
+      toast.success("Order items added to your cart");
+      router.push(ROUTES.cart);
+    } catch {
+      toast.error("Could not add some items to your cart. Please try again.");
+    } finally {
+      setReorderingId(null);
+    }
   }
 
   return (
@@ -375,6 +400,8 @@ function TrackOrderContent() {
                   order={order}
                   defaultExpanded={false}
                   onCancelClick={(ord) => setCancellingOrder(ord)}
+                  onReorder={handleReorder}
+                  isReordering={reorderingId === order.id}
                 />
               ))}
             </div>
@@ -477,10 +504,14 @@ function OrderTrackingCard({
   order,
   defaultExpanded = false,
   onCancelClick,
+  onReorder,
+  isReordering = false,
 }: {
   order: Order;
   defaultExpanded?: boolean;
   onCancelClick: (order: Order) => void;
+  onReorder?: (order: Order) => void;
+  isReordering?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [copied, setCopied] = useState(false);
@@ -599,12 +630,12 @@ function OrderTrackingCard({
 
         {/* Right side summary details & Action chevron */}
         <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-outline-variant/20">
-          <div className="text-left sm:text-right">
-            <p className="text-sm sm:text-base font-bold text-primary">{formatPrice(grandTotal)}</p>
-            <div className="flex flex-wrap items-center gap-1.5 mt-1 sm:justify-end">
-              <PaymentStatusBadge status={order.paymentStatus} />
+          <div className="flex flex-col items-start sm:items-end gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               <OrderStatusBadge status={order.status} />
+              <PaymentStatusBadge status={order.paymentStatus} />
             </div>
+            <p className="text-sm sm:text-base font-bold text-primary">{formatPrice(grandTotal)}</p>
           </div>
 
           <div className="w-8 h-8 rounded-full bg-surface-container border border-outline-variant/30 flex items-center justify-center text-secondary hover:text-primary transition-colors shrink-0">
@@ -612,6 +643,26 @@ function OrderTrackingCard({
           </div>
         </div>
       </div>
+
+      {/* Reorder — always visible on the list row itself, no need to expand the card */}
+      {onReorder && (
+        <div className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-1 flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isReordering}
+            onClick={(e) => {
+              e.stopPropagation();
+              onReorder(order);
+            }}
+            className="rounded-xl text-xs font-semibold px-4 py-2 cursor-pointer gap-1.5"
+          >
+            {isReordering ? <Spinner className="w-3.5 h-3.5" /> : <RotateCcw className="w-3.5 h-3.5" />}
+            <span>Reorder</span>
+          </Button>
+        </div>
+      )}
 
       {/* Expanded Accordion Body Content */}
       {isExpanded && (
@@ -649,7 +700,7 @@ function OrderTrackingCard({
                         className={cn(
                           "w-6 h-6 sm:w-7 sm:h-7 rounded-full z-10 border-2 transition-all flex items-center justify-center",
                           isDone
-                            ? "bg-primary border-primary text-surface"
+                            ? "bg-primary border-primary text-black"
                             : "bg-surface-container-lowest border-outline-variant text-secondary/60",
                           isCurrent && "ring-4 ring-primary/20 scale-110 shadow-sm"
                         )}
