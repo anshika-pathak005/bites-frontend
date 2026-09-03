@@ -11,12 +11,22 @@ import {
 } from "../api/addresses.api";
 import type { AddressPayload } from "@/types/address.types";
 
-export function useAddresses() {
+interface UseAddressesOptions {
+  // Guests no longer have a saved-address book, so the checkout page passes
+  // `enabled: isAuthenticated` to keep GET /api/addresses from ever firing for
+  // an anonymous caller. Defaults to true so existing (logged-in) callers —
+  // the profile address book, the AddressFormModal — are unaffected.
+  enabled?: boolean;
+}
+
+export function useAddresses(options: UseAddressesOptions = {}) {
+  const { enabled = true } = options;
   const queryClient = useQueryClient();
 
   const addressesQuery = useQuery({
     queryKey: queryKeys.addresses.all,
     queryFn: fetchAddresses,
+    enabled,
   });
 
   function invalidate() {
@@ -32,7 +42,7 @@ export function useAddresses() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: AddressPayload }) =>
+    mutationFn: ({ id, payload }: { id: number; payload: AddressPayload }) =>
       updateAddress(id, payload),
     onSuccess: () => {
       invalidate();
@@ -41,7 +51,7 @@ export function useAddresses() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteAddress(id),
+    mutationFn: (id: number) => deleteAddress(id),
     onSuccess: () => {
       invalidate();
       toast.success("Address removed");

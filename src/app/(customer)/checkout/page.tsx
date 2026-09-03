@@ -17,8 +17,10 @@ import { useMenuItem } from "@/features/menu/hooks/use-menu-item";
 import { usePlaceOrder, useVerifyPayment } from "@/features/checkout/hooks/use-checkout";
 import { useCancelOrder } from "@/features/orders/hooks/use-track-order";
 import { useDeliveryQuote } from "@/features/checkout/hooks/use-delivery-quote";
-import { AddressSelector } from "@/features/addresses/components/address-selector";
+import { DeliveryAddressSelector } from "@/features/addresses/components/delivery-address-selector";
+import { GuestAddressForm, type GuestAddressValue } from "@/features/addresses/components/guest-address-form";
 import { useAddresses } from "@/features/addresses/hooks/use-addresses";
+import { useCustomerAuth } from "@/context/customer-auth-context";
 import type { Address } from "@/types/address.types";
 import type { CheckoutPayload, Order, PaymentMethod } from "@/types/order.types";
 
@@ -64,9 +66,12 @@ function CheckoutPageContent() {
   const isBuyNowFlow = !!buyNowItemId;
 
   const { cartQuery, addItem } = useCart();
+  const { customer, isAuthenticated } = useCustomerAuth();
   const { data: buyNowItem, isLoading: isLoadingBuyNowItem } = useMenuItem(buyNowItemId ?? "");
-  const { addressesQuery } = useAddresses();
-  const savedAddresses = addressesQuery.data ?? [];
+  // Guests have no saved-address book — only logged-in customers fetch saved
+  // addresses. Guests enter a fresh address inline (see GuestAddressForm).
+  const { addressesQuery } = useAddresses({ enabled: isAuthenticated });
+  const savedAddresses = isAuthenticated ? addressesQuery.data ?? [] : [];
 
   const placeOrder = usePlaceOrder();
   const verifyPaymentMutation = useVerifyPayment();
@@ -111,6 +116,17 @@ function CheckoutPageContent() {
     }
   }, [savedAddresses, selectedAddress]);
 
+  // Logged-in customers never retype their name/phone at checkout — pull
+  // both straight from their account the moment it's available, so the
+  // payload is always correct even though these fields aren't shown as
+  // editable inputs for them (see DeliveryAddressSelector).
+  useEffect(() => {
+    if (isAuthenticated && customer) {
+      setValue("name", customer.name, { shouldValidate: true });
+      setValue("phone", customer.phone, { shouldValidate: true });
+    }
+  }, [isAuthenticated, customer, setValue]);
+
   // Real-time Delivery Quote query via GET /api/delivery-pricing/quote?latitude={lat}&longitude={lng}
   const quoteQuery = useDeliveryQuote(latitudeValue, longitudeValue);
 
@@ -119,10 +135,27 @@ function CheckoutPageContent() {
     setSelectedAddress(address);
     setValue("fullAddress", address.fullAddress, { shouldValidate: true });
     setValue("landmark", address.landmark || "");
-    setValue("pincode", address.pincode, { shouldValidate: true });
-    setValue("latitude", address.latitude, { shouldValidate: true });
-    setValue("longitude", address.longitude, { shouldValidate: true });
-    setInlineError(null);
+    setValue("pincode", address.pincode ?? "", { shouldValidate: true });
+    // Legacy rows saved before coordinates were required can have neither. The
+    // backend rejects a checkout without them and delivery pricing needs them,
+    // so say so here rather than letting Place Order fail with a 400.
+    setValue("latitude", address.latitude ?? 0, { shouldValidate: true });
+    setValue("longitude", address.longitude ?? 0, { shouldValidate: true });
+    setInlineError(
+      address.latitude === null || address.longitude === null
+        ? "This saved address has no location on it. Please edit it and confirm the spot on the map before ordering."
+        : null
+    );
+  }
+
+  // Guest inline address -> checkout form. No saved address is involved; the
+  // pinned coordinates + typed text flow straight onto the order.
+  function handleGuestAddressChange(v: GuestAddressValue) {
+    setValue("fullAddress", v.fullAddress, { shouldValidate: true });
+    setValue("landmark", v.landmark);
+    setValue("pincode", v.pincode, { shouldValidate: true });
+    setValue("latitude", v.latitude, { shouldValidate: true });
+    setValue("longitude", v.longitude, { shouldValidate: true });
   }
 
   // Cancel pending order and restore cart items from local storage backup
@@ -407,41 +440,52 @@ function CheckoutPageContent() {
             </div>
           )}
 
-          {/* Delivery Contact Info */}
-          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
-            <h3 className="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-3">
-              Delivery Contact Info
-            </h3>
+          {/* Delivery Contact Info — guests only; logged-in customers get
+              their name/phone from their account (see effect above and
+              DeliveryAddressSelector), so no retyping needed. */}
+          {!isAuthenticated && (
+            <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
+              <h3 className="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-3">
+                Delivery Contact Info
+              </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">
-                  Recipient Name
-                </label>
-                <Input {...register("name")} placeholder="Your full name" />
-                {errors.name && <p className="text-error text-xs mt-1">{errors.name.message}</p>}
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">
+                    Recipient Name
+                  </label>
+                  <Input {...register("name")} placeholder="Your full name" />
+                  {errors.name && <p className="text-error text-xs mt-1">{errors.name.message}</p>}
+                </div>
 
-              <div>
-                <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">
-                  Phone Number
-                </label>
-                <Input {...register("phone")} placeholder="e.g. 9876543210" />
-                {errors.phone && <p className="text-error text-xs mt-1">{errors.phone.message}</p>}
+                <div>
+                  <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">
+                    Phone Number
+                  </label>
+                  <Input {...register("phone")} placeholder="e.g. 9876543210" />
+                  {errors.phone && <p className="text-error text-xs mt-1">{errors.phone.message}</p>}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Delivery Address Section with Saved Address Book */}
+          {/* Delivery Address Section — Meesho-style single-card picker for
+              logged-in customers, plain saved-address grid + form for guests. */}
           <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm p-5 sm:p-6 space-y-5">
             <h3 className="font-headline-md text-headline-md text-on-surface border-b border-outline-variant/30 pb-3">
               Delivery Address
             </h3>
 
-            <AddressSelector
-              selectedAddressId={selectedAddress?.id}
-              onSelectAddress={handleSelectSavedAddress}
-            />
+            {isAuthenticated ? (
+              <DeliveryAddressSelector
+                selectedAddress={selectedAddress}
+                onSelectAddress={handleSelectSavedAddress}
+                customerName={customer?.name}
+                customerPhone={customer?.phone}
+              />
+            ) : (
+              <GuestAddressForm onChange={handleGuestAddressChange} />
+            )}
 
             {errors.fullAddress && !fullAddressValue && (
               <p className="text-error text-xs">{errors.fullAddress.message}</p>

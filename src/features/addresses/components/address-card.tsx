@@ -22,8 +22,10 @@ export function AddressCard({
   onDelete,
   selectable = true,
 }: AddressCardProps) {
-  const isHome = address.label.toLowerCase() === "home";
-  const isWork = address.label.toLowerCase() === "work";
+  // label is optional on the backend, so it can genuinely arrive as null.
+  const label = address.label ?? "";
+  const isHome = label.toLowerCase() === "home";
+  const isWork = label.toLowerCase() === "work";
 
   const IconComponent = isHome ? Home : isWork ? Briefcase : MapPin;
 
@@ -42,7 +44,7 @@ export function AddressCard({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-surface-container text-on-surface">
             <IconComponent className="w-3.5 h-3.5 text-primary" />
-            {address.label}
+            {label || "Address"}
           </span>
           {address.isDefault && (
             <Badge className="bg-primary/10 text-primary border border-primary/20 text-[10px] py-0 px-2">

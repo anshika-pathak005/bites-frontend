@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { AlertCircle, CheckCircle2, Navigation, RotateCcw } from "lucide-react";
+import { AlertCircle, Info, MapPin } from "lucide-react";
 import axios from "axios";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
@@ -12,21 +12,50 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { useAddresses } from "../hooks/use-addresses";
+import { LocationStep } from "./location-step";
+import type { PickedLocation, PinPrecision } from "../types/location";
+import {
+  composeFullAddress,
+  splitStoredAddress,
+  findDuplicateAddress,
+} from "../utils/address-composition";
 import type { Address, AddressPayload } from "@/types/address.types";
 
 const addressFormSchema = z.object({
   label: z.string().min(1, "Label is required (e.g. Home, Work)"),
-  fullAddress: z.string().min(5, "Please enter your full address"),
+  // Required on purpose. Reverse geocoding cannot supply a door number, and an
+  // address without one sends the rider to the right gali and the wrong gate.
+  flatOrHouse: z.string().min(1, "Flat / house number is required"),
+  buildingOrSociety: z.string().optional(),
+  areaOrStreet: z.string().min(3, "Please enter the street or area"),
   landmark: z.string().optional(),
-  pincode: z.string().min(4, "Please enter a valid pincode"),
-  latitude: z.number().default(0),
-  longitude: z.number().default(0),
-  isDefault: z.boolean().default(false),
+  // Optional on the backend (CustomerAddressRequest), and reverse geocoding
+  // genuinely fails to return one in parts of India. Empty is allowed; a
+  // half-typed one is not.
+  pincode: z
+    .string()
+    .regex(/^\d{6}$/, "A pincode must be 6 digits")
+    .or(z.literal("")),
+  latitude: z.number(),
+  longitude: z.number(),
+  isDefault: z.boolean(),
 });
 
 type AddressFormValues = z.infer<typeof addressFormSchema>;
 
 const LABEL_SUGGESTIONS = ["Home", "Work", "Other"];
+
+const EMPTY_FORM: AddressFormValues = {
+  label: "Home",
+  flatOrHouse: "",
+  buildingOrSociety: "",
+  areaOrStreet: "",
+  landmark: "",
+  pincode: "",
+  latitude: 0,
+  longitude: 0,
+  isDefault: false,
+};
 
 interface AddressFormModalProps {
   open: boolean;
@@ -41,164 +70,163 @@ export function AddressFormModal({
   initialData,
   onSaved,
 }: AddressFormModalProps) {
-  const { createMutation, updateMutation } = useAddresses();
+  const { addressesQuery, createMutation, updateMutation } = useAddresses();
   const isEditing = !!initialData;
+  const savedAddresses = useMemo(
+    () => addressesQuery.data ?? [],
+    [addressesQuery.data]
+  );
 
-  // GPS coordinate state maintained purely in form/component state
-  const [isLocating, setIsLocating] = useState(false);
-  const [gpsError, setGpsError] = useState<string | null>(null);
-  const [hasValidCoordinates, setHasValidCoordinates] = useState(false);
+  const [precision, setPrecision] = useState<PinPrecision>("none");
+  const [digipin, setDigipin] = useState<string | null>(null);
   const [inlineError, setInlineError] = useState<string | null>(null);
+  // Leaflet holds a live map instance, so the picker gets a fresh key each time
+  // the modal opens rather than being reused across a stale container.
+  const [mapKey, setMapKey] = useState(0);
 
   const {
     register,
     handleSubmit,
     setValue,
+    getValues,
     watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<AddressFormValues>({
     resolver: zodResolver(addressFormSchema),
-    defaultValues: {
-      label: "Home",
-      fullAddress: "",
-      landmark: "",
-      pincode: "",
-      latitude: 0,
-      longitude: 0,
-      isDefault: false,
-    },
+    defaultValues: EMPTY_FORM,
   });
 
   const activeLabel = watch("label");
-  const currentLat = watch("latitude");
-  const currentLon = watch("longitude");
+  const flatValue = watch("flatOrHouse");
+  const latValue = watch("latitude");
+  const lngValue = watch("longitude");
 
-  // Requests GPS coordinates seamlessly without auto-filling street text
-  const requestLocation = useCallback(() => {
-    if (typeof window === "undefined" || !navigator.geolocation) {
-      setGpsError("Browser geolocation is not supported on this device.");
-      setHasValidCoordinates(false);
-      return;
-    }
+  /**
+   * The picker owns the coordinate. Text it resolves is treated as a *default*
+   * for the area line, never an override — dragging the pin after the user has
+   * reworded their street shouldn't wipe what they typed.
+   */
+  const handleLocationChange = useCallback(
+    (loc: PickedLocation) => {
+      setValue("latitude", loc.latitude, { shouldValidate: true });
+      setValue("longitude", loc.longitude, { shouldValidate: true });
+      setPrecision(loc.precision);
+      setDigipin(loc.digipin);
 
-    setGpsError(null);
-    setIsLocating(true);
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setValue("latitude", latitude, { shouldValidate: true });
-        setValue("longitude", longitude, { shouldValidate: true });
-        setHasValidCoordinates(true);
-        setIsLocating(false);
-        setGpsError(null);
-      },
-      (error) => {
-        setIsLocating(false);
-        setHasValidCoordinates(false);
-        setValue("latitude", 0);
-        setValue("longitude", 0);
-
-        if (error.code === error.PERMISSION_DENIED) {
-          setGpsError(
-            "Location access is required to verify delivery availability in our 8km service area. Please allow browser location access to add this address."
-          );
-        } else {
-          setGpsError(
-            "Could not determine your location. Please ensure location services are enabled and try again."
-          );
-        }
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
-    );
-  }, [setValue]);
-
-  // Modal open / reset lifecycle
-  useEffect(() => {
-    if (open) {
-      setInlineError(null);
-      if (initialData) {
-        // Editing existing address: already has valid coordinates
-        reset({
-          label: initialData.label,
-          fullAddress: initialData.fullAddress,
-          landmark: initialData.landmark || "",
-          pincode: initialData.pincode,
-          latitude: initialData.latitude,
-          longitude: initialData.longitude,
-          isDefault: initialData.isDefault,
-        });
-        setHasValidCoordinates(
-          typeof initialData.latitude === "number" &&
-            typeof initialData.longitude === "number" &&
-            (initialData.latitude !== 0 || initialData.longitude !== 0)
-        );
-        setGpsError(null);
-        setIsLocating(false);
-      } else {
-        // Adding new address: seamlessly request GPS coordinates on modal open
-        reset({
-          label: "Home",
-          fullAddress: "",
-          landmark: "",
-          pincode: "",
-          latitude: 0,
-          longitude: 0,
-          isDefault: false,
-        });
-        setHasValidCoordinates(false);
-        requestLocation();
+      if (loc.areaLine && !getValues("areaOrStreet")) {
+        setValue("areaOrStreet", loc.areaLine, { shouldValidate: true });
       }
+      if (loc.pincode && !getValues("pincode")) {
+        setValue("pincode", loc.pincode, { shouldValidate: true });
+      }
+      if (loc.landmark && !getValues("landmark")) {
+        setValue("landmark", loc.landmark);
+      }
+      setInlineError(null);
+    },
+    [setValue, getValues]
+  );
+
+  // Open / reset lifecycle
+  useEffect(() => {
+    if (!open) return;
+
+    setInlineError(null);
+    setMapKey((k) => k + 1);
+
+    if (initialData) {
+      const parts = splitStoredAddress(initialData.fullAddress);
+      reset({
+        label: initialData.label ?? "Home",
+        flatOrHouse: parts.flatOrHouse,
+        buildingOrSociety: parts.buildingOrSociety,
+        areaOrStreet: parts.areaOrStreet,
+        landmark: initialData.landmark ?? "",
+        pincode: initialData.pincode ?? "",
+        latitude: initialData.latitude ?? 0,
+        longitude: initialData.longitude ?? 0,
+        isDefault: initialData.isDefault,
+      });
+      // An already-saved address was confirmed when it was created.
+      setPrecision(
+        initialData.latitude !== null && initialData.longitude !== null
+          ? "exact"
+          : "none"
+      );
+    } else {
+      reset(EMPTY_FORM);
+      setPrecision("none");
+      setDigipin(null);
     }
-  }, [open, initialData, reset, requestLocation]);
+  }, [open, initialData, reset]);
+
+  // Live duplicate warning, so the user finds out before hitting Save.
+  const duplicate = useMemo(() => {
+    if (precision !== "exact" || !flatValue?.trim()) return null;
+    if (!latValue && !lngValue) return null;
+    return findDuplicateAddress(
+      savedAddresses,
+      latValue,
+      lngValue,
+      flatValue,
+      initialData?.id
+    );
+  }, [precision, flatValue, latValue, lngValue, savedAddresses, initialData?.id]);
 
   async function onSubmit(values: AddressFormValues) {
     setInlineError(null);
 
-    // Require valid GPS coordinates
-    const lat = values.latitude;
-    const lon = values.longitude;
+    if (!values.latitude && !values.longitude) {
+      setInlineError("Please pin your location on the map first.");
+      return;
+    }
 
-    if (!lat || !lon || (lat === 0 && lon === 0)) {
-      setGpsError(
-        "Location access is required to verify delivery availability in our 8km service area. Please allow location access to continue."
+    if (precision !== "exact") {
+      setInlineError(
+        "Please confirm your location first, then save."
       );
       return;
     }
 
+    if (duplicate) {
+      setInlineError(
+        `You've already saved this exact spot as "${duplicate.label}". Edit that one instead, or change the flat number.`
+      );
+      return;
+    }
+
+    // The backend still takes a single fullAddress string, so the parts are
+    // joined back together here. Nothing about the API contract changes.
     const payload: AddressPayload = {
       label: values.label.trim(),
-      fullAddress: values.fullAddress.trim(),
+      fullAddress: composeFullAddress({
+        flatOrHouse: values.flatOrHouse,
+        buildingOrSociety: values.buildingOrSociety ?? "",
+        areaOrStreet: values.areaOrStreet,
+      }),
       landmark: values.landmark?.trim() || undefined,
-      pincode: values.pincode.trim(),
-      latitude: lat,
-      longitude: lon,
+      pincode: values.pincode.trim() || undefined,
+      latitude: values.latitude,
+      longitude: values.longitude,
       isDefault: values.isDefault,
     };
 
     try {
-      if (initialData) {
-        const updated = await updateMutation.mutateAsync({
-          id: initialData.id,
-          payload,
-        });
-        onSaved?.(updated);
-      } else {
-        const created = await createMutation.mutateAsync(payload);
-        onSaved?.(created);
-      }
+      const saved = initialData
+        ? await updateMutation.mutateAsync({ id: initialData.id, payload })
+        : await createMutation.mutateAsync(payload);
+      onSaved?.(saved);
       onClose();
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        const errorData = err.response?.data;
-        const msg =
-          errorData?.message ||
-          errorData?.error?.message ||
-          (typeof errorData === "string" ? errorData : null) ||
-          "Could not save address. Please check your details.";
-
-        setInlineError(msg);
+        const data = err.response?.data;
+        setInlineError(
+          data?.message ||
+            data?.error?.message ||
+            (typeof data === "string" ? data : null) ||
+            "Could not save address. Please check your details."
+        );
       } else if (err instanceof Error) {
         setInlineError(err.message);
       } else {
@@ -207,83 +235,59 @@ export function AddressFormModal({
     }
   }
 
-  const isSaving =
-    isSubmitting || createMutation.isPending || updateMutation.isPending;
+  const isSaving = isSubmitting || createMutation.isPending || updateMutation.isPending;
 
-  const canSubmit = hasValidCoordinates && !isLocating && !isSaving;
+  /**
+   * Deliberately NOT wired to the button's `disabled` attribute.
+   *
+   * A disabled button swallows the click and explains nothing — the user is
+   * left staring at a greyed-out control with no idea what is missing. Instead
+   * the button stays clickable and looks inactive, and onSubmit turns the
+   * click into a specific sentence about what to do next. Only a save already
+   * in flight actually disables it.
+   */
+  const isBlocked = precision !== "exact" || !!duplicate;
+
+  const labelClass = "block mb-1.5 text-sm font-semibold text-on-surface";
 
   return (
     <Modal
       open={open}
       title={isEditing ? "Edit Delivery Address" : "Add Delivery Address"}
       onClose={onClose}
+      size="lg"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Seamless Location Status Indicator */}
-        <div
-          className={cn(
-            "p-3.5 rounded-2xl border text-xs sm:text-sm font-medium transition-all duration-200",
-            isLocating
-              ? "bg-surface-container/70 border-outline-variant/40 text-on-surface"
-              : hasValidCoordinates
-              ? "bg-emerald-950/80 border-emerald-500/40 text-emerald-300"
-              : "bg-error-container/60 border-error/30 text-on-error-container"
-          )}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-2.5">
-              {isLocating ? (
-                <Spinner className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              ) : hasValidCoordinates ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-error shrink-0 mt-0.5" />
-              )}
-              <div className="space-y-0.5">
-                <p className="font-bold">
-                  {isLocating
-                    ? "Verifying delivery area location..."
-                    : hasValidCoordinates
-                    ? "Delivery area location verified"
-                    : "Location permission required"}
-                </p>
-                <p className="text-[11px] sm:text-xs opacity-90 leading-relaxed">
-                  {isLocating
-                    ? "Requesting device GPS coordinates to ensure you're within our delivery service area."
-                    : hasValidCoordinates
-                    ? "Coordinates captured. Enter your address details below to save."
-                    : gpsError ||
-                      "Location access is required to verify delivery availability in our 8km service area."}
-                </p>
-              </div>
-            </div>
-
-            {!isLocating && !hasValidCoordinates && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={requestLocation}
-                className="shrink-0 rounded-full text-xs font-semibold gap-1 self-start cursor-pointer hover:bg-surface-container"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Retry
-              </Button>
-            )}
-          </div>
+        <div>
+          <label className={labelClass}>Your delivery location</label>
+          <LocationStep
+            key={mapKey}
+            autoLocateOnMount={!initialData}
+            initialLatitude={initialData?.latitude ?? undefined}
+            initialLongitude={initialData?.longitude ?? undefined}
+            onChange={handleLocationChange}
+          />
         </div>
 
-        {/* Backend Inline Error Alert (e.g. 400 "outside our 8km delivery radius") */}
+        {duplicate && (
+          <div
+            className="p-3.5 rounded-xl text-sm flex items-start gap-2.5 bg-amber-950/50 border border-amber-500/30 text-amber-100"
+            role="alert"
+          >
+            <Info className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-bold">Already saved</p>
+              <p className="leading-relaxed">
+                This doorstep is saved as &quot;{duplicate.label}&quot;. Change the
+                flat number or pick a different spot to add a new one.
+              </p>
+            </div>
+          </div>
+        )}
+
         {inlineError && (
           <div
-            className={cn(
-              "p-3.5 rounded-xl text-xs sm:text-sm font-medium flex items-start gap-2.5",
-              inlineError.toLowerCase().includes("radius") ||
-                inlineError.toLowerCase().includes("outside") ||
-                inlineError.toLowerCase().includes("8km")
-                ? "bg-error-container text-on-error-container border border-error/30"
-                : "bg-error-container/70 text-on-error-container"
-            )}
+            className="p-3.5 rounded-xl text-sm font-medium flex items-start gap-2.5 bg-error-container text-on-error-container border border-error/30"
             role="alert"
           >
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -294,11 +298,9 @@ export function AddressFormModal({
           </div>
         )}
 
-        {/* Address Label Suggestions & Input */}
+        {/* Label */}
         <div>
-          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">
-            Address Label
-          </label>
+          <label className={labelClass}>Address Label</label>
           <div className="flex flex-wrap gap-2 mb-2">
             {LABEL_SUGGESTIONS.map((label) => (
               <button
@@ -318,101 +320,122 @@ export function AddressFormModal({
           </div>
           <Input
             {...register("label")}
-            placeholder="Custom label (e.g. Apartment, Vacation Home)"
+            placeholder="Custom label (e.g. Apartment, PG)"
             className="text-sm"
           />
-          {errors.label && (
-            <p className="text-error text-xs mt-1">{errors.label.message}</p>
-          )}
+          {errors.label && <p className="text-error text-sm mt-1">{errors.label.message}</p>}
         </div>
 
-        {/* Full Street Address (Manually Entered) */}
-        <div>
-          <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">
-            Full Street Address
-          </label>
-          <Input
-            {...register("fullAddress")}
-            placeholder="House / Flat / Street / Area"
-            className="text-sm"
-          />
-          {errors.fullAddress && (
-            <p className="text-error text-xs mt-1">
-              {errors.fullAddress.message}
-            </p>
-          )}
-        </div>
-
-        {/* Landmark & Pincode (Manually Entered) */}
+        {/* Door details — the part no map can ever fill in */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">
-              Landmark (Optional)
+            <label className={labelClass}>
+              Flat / House / Floor <span className="text-error">*</span>
             </label>
+            <Input
+              {...register("flatOrHouse")}
+              placeholder="e.g. 402, 2nd Floor"
+              className="text-sm"
+              autoComplete="off"
+            />
+            {errors.flatOrHouse && (
+              <p className="text-error text-sm mt-1">{errors.flatOrHouse.message}</p>
+            )}
+          </div>
+          <div>
+            <label className={labelClass}>Building / Society (Optional)</label>
+            <Input
+              {...register("buildingOrSociety")}
+              placeholder="e.g. Shalimar Residency"
+              className="text-sm"
+              autoComplete="off"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className={labelClass}>Street / Area</label>
+          <Input
+            {...register("areaOrStreet")}
+            placeholder="Auto-filled from your pin — edit if needed"
+            className="text-sm"
+            autoComplete="off"
+          />
+          {errors.areaOrStreet && (
+            <p className="text-error text-sm mt-1">{errors.areaOrStreet.message}</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass}>Landmark (Optional)</label>
             <Input
               {...register("landmark")}
               placeholder="e.g. Near City Mall"
               className="text-sm"
+              autoComplete="off"
             />
           </div>
-
           <div>
-            <label className="font-label-md text-xs sm:text-label-sm block mb-1.5 font-semibold text-on-surface">
-              Pincode / Postal Code
-            </label>
+            <label className={labelClass}>Pincode</label>
             <Input
               {...register("pincode")}
-              placeholder="e.g. 560001"
+              placeholder="e.g. 226010"
               className="text-sm"
+              inputMode="numeric"
+              maxLength={6}
+              autoComplete="postal-code"
             />
             {errors.pincode && (
-              <p className="text-error text-xs mt-1">
-                {errors.pincode.message}
-              </p>
+              <p className="text-error text-sm mt-1">{errors.pincode.message}</p>
             )}
           </div>
         </div>
 
-        {/* Set as Default Address Checkbox */}
+        {digipin && precision === "exact" && (
+          <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+            <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+            <span>
+              DIGIPIN <span className="font-mono font-semibold text-on-surface">{digipin}</span>{" "}
+              — India Post&apos;s 4m grid code for this pin.
+            </span>
+          </div>
+        )}
+
         <label className="flex items-center gap-2.5 pt-1 cursor-pointer select-none">
           <input
             type="checkbox"
             {...register("isDefault")}
             className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary accent-primary"
           />
-          <span className="text-xs sm:text-sm text-on-surface font-medium">
+          <span className="text-sm text-on-surface font-medium">
             Set as default delivery address
           </span>
         </label>
 
-        {/* Action Buttons */}
         <div className="flex justify-end gap-2.5 pt-3 border-t border-outline-variant/30">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={isSaving}
-            className="rounded-xl text-xs sm:text-sm cursor-pointer"
+            className="rounded-xl text-sm cursor-pointer"
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            disabled={!canSubmit}
+            disabled={isSaving}
+            aria-disabled={isBlocked}
             className={cn(
-              "rounded-xl text-black font-bold text-xs sm:text-sm px-6 cursor-pointer",
-              !canSubmit && "opacity-50 cursor-not-allowed pointer-events-none"
+              "rounded-xl text-black font-bold text-sm px-6 cursor-pointer",
+              isBlocked && "opacity-50"
             )}
           >
             {isSaving ? (
               <>
                 <Spinner className="w-4 h-4 mr-2" />
                 <span>Saving...</span>
-              </>
-            ) : isLocating ? (
-              <>
-                <Spinner className="w-4 h-4 mr-2" />
-                <span>Verifying Location...</span>
               </>
             ) : (
               <span>{isEditing ? "Update Address" : "Save Address"}</span>

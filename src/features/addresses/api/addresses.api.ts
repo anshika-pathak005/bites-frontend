@@ -20,7 +20,7 @@ export async function createAddress(payload: AddressPayload): Promise<Address> {
 }
 
 // PUT /api/addresses/:addressId — updates an existing address.
-export async function updateAddress(addressId: string, payload: AddressPayload): Promise<Address> {
+export async function updateAddress(addressId: number, payload: AddressPayload): Promise<Address> {
   const { data } = await apiClient.put<ApiResponse<Address>>(`/addresses/${addressId}`, payload);
   if (!data.data) {
     throw new Error(data.message || "Failed to update address");
@@ -29,6 +29,6 @@ export async function updateAddress(addressId: string, payload: AddressPayload):
 }
 
 // DELETE /api/addresses/:addressId — deletes a saved address.
-export async function deleteAddress(addressId: string): Promise<void> {
+export async function deleteAddress(addressId: number): Promise<void> {
   await apiClient.delete(`/addresses/${addressId}`);
 }

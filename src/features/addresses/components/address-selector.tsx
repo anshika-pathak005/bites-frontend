@@ -11,7 +11,10 @@ import { AddressFormModal } from "./address-form-modal";
 import type { Address } from "@/types/address.types";
 
 interface AddressSelectorProps {
-  selectedAddressId?: string;
+  // Numeric, matching Address.id. This was typed as a string, which made the
+  // `selectedAddressId === address.id` comparison below permanently false —
+  // the selected card never highlighted.
+  selectedAddressId?: number;
   onSelectAddress: (address: Address) => void;
 }
 
