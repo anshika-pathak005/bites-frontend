@@ -28,13 +28,16 @@ export function CoordinateEntry({ onChange }: CoordinateEntryProps) {
 
   const parsed: CoordinateParseResult = useMemo(
     () => parseCoordinateInput(raw),
-    [raw]
+    [raw],
   );
 
   const latitude = parsed.ok ? parsed.latitude : null;
   const longitude = parsed.ok ? parsed.longitude : null;
 
-  const { address, isResolving, error } = useReverseGeocode(latitude, longitude);
+  const { address, isResolving, error } = useReverseGeocode(
+    latitude,
+    longitude,
+  );
 
   const onChangeRef = useRef(onChange);
   useEffect(() => {
@@ -67,7 +70,8 @@ export function CoordinateEntry({ onChange }: CoordinateEntryProps) {
     setRaw(parsed.suggestion.canonical);
   }, [parsed]);
 
-  const showError = !parsed.ok && parsed.code !== "empty" && raw.trim().length > 0;
+  const showError =
+    !parsed.ok && parsed.code !== "empty" && raw.trim().length > 0;
 
   return (
     <div className="space-y-3.5">
@@ -79,11 +83,13 @@ export function CoordinateEntry({ onChange }: CoordinateEntryProps) {
         <li>1. Open the Google Maps app on your phone.</li>
         <li>2. Find your house on the map.</li>
         <li>3. Press and hold on it until a red pin drops.</li>
-        <li>4. Copy the two numbers shown at the bottom, then type them below.</li>
+        <li>
+          4. Copy the two numbers shown at the bottom, then type them below.
+        </li>
         <li className="pt-0.5">
           They look like this:{" "}
           <span className="font-mono font-semibold text-on-surface">
-            26.203060, 82.958871
+            26.0765030, 83.1850130
           </span>
         </li>
       </ol>
@@ -99,7 +105,7 @@ export function CoordinateEntry({ onChange }: CoordinateEntryProps) {
           id="coordinate-input"
           value={raw}
           onChange={(e) => setRaw(e.target.value)}
-          placeholder="26.203060, 82.958871"
+          placeholder="26.0765030, 83.1850130"
           className="font-mono text-sm"
           autoComplete="off"
           spellCheck={false}

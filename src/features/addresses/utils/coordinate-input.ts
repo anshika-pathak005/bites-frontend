@@ -36,7 +36,7 @@ export interface CoordinateParseOk {
   /**
    * The pair re-joined in canonical "lat,lng" form, at the precision the user
    * typed. Used for the Google Maps verify link so what they see is what they
-   * pasted — Number() round-tripping would turn 26.203060 into 26.20306.
+   * pasted — Number() round-tripping would turn 26.0765030 into 26.20306.
    */
   canonical: string;
 }
@@ -57,9 +57,9 @@ export type CoordinateParseResult = CoordinateParseOk | CoordinateParseError;
 
 /**
  * Matches one angle in any of the forms Google produces:
- *   26.203060          plain decimal
- *   -26.203060         signed decimal
- *   26.203060°N        decimal with hemisphere
+ *   26.0765030          plain decimal
+ *   -26.0765030         signed decimal
+ *   26.0765030°N        decimal with hemisphere
  *   26°12'11.0"N       degrees / minutes / seconds
  *
  * The minute and second groups are optional, which is what lets one regex
@@ -78,7 +78,7 @@ function toDecimal(
   degrees: number,
   minutes: string | undefined,
   seconds: string | undefined,
-  hemisphere: string | undefined
+  hemisphere: string | undefined,
 ): Angle {
   const sign = degrees < 0 ? -1 : 1;
   let value =
@@ -125,7 +125,10 @@ const SHORT_LINK = /(maps\.app\.goo\.gl|goo\.gl\/maps)/i;
  * problem the decision doc rejected link-parsing over.
  */
 function fromUrl(text: string): CoordinateParseResult | { pass: string } {
-  if (!/^https?:\/\//i.test(text) && !/^(www\.)?(maps\.)?google\./i.test(text)) {
+  if (
+    !/^https?:\/\//i.test(text) &&
+    !/^(www\.)?(maps\.)?google\./i.test(text)
+  ) {
     return { pass: text };
   }
 
@@ -176,7 +179,10 @@ export function formatCoordinates(latitude: number, longitude: number): string {
 }
 
 /** The link the user opens to check the pin. Documented Search URL API. */
-export function googleMapsVerifyUrl(latitude: number, longitude: number): string {
+export function googleMapsVerifyUrl(
+  latitude: number,
+  longitude: number,
+): string {
   const q = encodeURIComponent(formatCoordinates(latitude, longitude));
   return `https://www.google.com/maps/search/?api=1&query=${q}`;
 }
@@ -206,18 +212,19 @@ export function parseCoordinateInput(input: string): CoordinateParseResult {
       ok: false,
       code: "unparseable",
       message:
-        "That doesn't look like a pair of coordinates. It should be two numbers separated by a comma, like 26.203060, 82.958871.",
+        "That doesn't look like a pair of coordinates. It should be two numbers separated by a comma, like 26.0765030, 83.1850130.",
     };
   }
 
   const [first, second] = angles;
 
-  // If the user pasted "82.958871E, 26.203060N", the hemisphere letters say
+  // If the user pasted "83.1850130E, 26.0765030N", the hemisphere letters say
   // which is which regardless of the order they were typed in.
   let latitude = first.value;
   let longitude = second.value;
   const firstIsLongitude = first.hemisphere === "E" || first.hemisphere === "W";
-  const secondIsLatitude = second.hemisphere === "N" || second.hemisphere === "S";
+  const secondIsLatitude =
+    second.hemisphere === "N" || second.hemisphere === "S";
   if (firstIsLongitude || secondIsLatitude) {
     latitude = second.value;
     longitude = first.value;
