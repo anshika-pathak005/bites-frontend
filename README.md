@@ -8,7 +8,7 @@
 
 ---
 
-**Live Demo:** [Bites](https://bite-culinary.vercel.app)
+**Live Demo:** [Bites](https://bites-culinary.vercel.app)
 
 **Repositories:**
 - **Frontend:** [bites-frontend](https://github.com/anshika-pathak005/bites-frontend)
