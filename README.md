@@ -60,7 +60,7 @@ The application supports customer and guest shopping flows, address management, 
   - Integrate with backend delivery pricing rules.
   - Support for the checkout and order placement workflow.
   
-   - **Payment Integration:**
+ - **Payment Integration:**
     - Online payments through Razorpay.
     - Cash on Delivery (COD) payment option.
     - Payment method selection during checkout.
