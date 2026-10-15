@@ -1,239 +1,357 @@
-# Bites — Restaurant Ordering Platform
 
-A full-stack restaurant ordering web app with guest checkout for customers and a complete admin panel for managing the restaurant.
+# Bites - Food Ordering & Restaurant Management Platform
 
----
-
-## Overview
-
-Bites lets a restaurant take orders online without forcing customers to create an account — browse the menu, add items to a cart, check out as a guest, and track the order status in real time. On the other side, restaurant staff get an admin panel to manage the menu, categories, delivery areas, incoming orders, and customer records.
-
-**Target users:**
-- **Customers** — anyone who wants to order food without signing up.
-- **Restaurant admins/staff** — manage menu, orders, delivery areas, and view customer history.
-
-This repo is the **frontend only**. It talks to a separate Spring Boot backend over a REST API.
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.6-black.svg)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.0.0-blue.svg)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6.2-blue.svg)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.13-38B2AC.svg)](https://tailwindcss.com/)
 
 ---
 
-## Features
+**Live Demo:** [Bites](https://bite-culinary.vercel.app)
 
-### Customer
-- Browse menu with category filters, search, and pagination
-- Item detail page with a "Buy Now" (skip cart) flow
-- Cart management (guest session, no login)
-- Checkout (Cart flow and Buy Now flow share one page)
-- Order success confirmation
-- Track order by order number/phone
-- Static About and Contact pages
-
-### Admin
-- JWT-based login
-- Dashboard with order/revenue summary
-- Order management with status transitions (Pending → Accepted → Preparing → Out for Delivery → Delivered, or Cancelled)
-- Menu item management (create/edit/toggle availability)
-- Category management
-- Delivery area management
-- Customer list (read-only) with saved addresses
-- Restaurant settings
-- Admin profile (update info, change password)
+**Repositories:**
+- **Frontend:** [bites-frontend](https://github.com/anshika-pathak005/bites-frontend)
+- **Backend:** [bites-backend](https://github.com/anshika-pathak005/bites-backend)
 
 ---
 
-## Tech Stack
+## 1. Project Title
 
-| Layer | Technology |
-|---|---|
-| Frontend framework | Next.js 16 (App Router), React 19, TypeScript |
-| Styling | Tailwind CSS |
-| Server state | TanStack Query (React Query) |
-| Forms & validation | React Hook Form + Zod |
-| HTTP client | Axios |
-| UI utilities | Lucide icons, Sonner (toasts), class-variance-authority, tailwind-merge |
-| Backend | Spring Boot 3 (Java 21) — separate repo |
-| Auth | Spring Security + JWT |
-| Database | MySQL (via Spring Data JPA, Flyway migrations) |
-| Dev tools | ESLint 9 (flat config), TypeScript |
+**Bites** – A modern food ordering and restaurant management platform built with Next.js, React, TypeScript, and Tailwind CSS, featuring customer ordering, delivery management, and an administrative dashboard.
 
 ---
 
-## Project Structure
+## 2. Introduction
 
+**Bites** is a full-stack food ordering platform designed to provide customers with a seamless food discovery and ordering experience while enabling administrators to manage restaurant operations through a dedicated dashboard.
+
+The frontend is built with **Next.js App Router**, TypeScript, and Tailwind CSS, with TanStack Query for server-state management and Axios for API communication. It integrates with a separate Spring Boot backend to handle authentication, menu management, orders, delivery pricing, and other business operations.
+
+The application supports customer and guest shopping flows, address management, checkout, order tracking, and administrative tools for managing menu items, categories, customers, orders, and delivery charge slabs.
+
+---
+
+## 3. Features
+
+- **Customer Authentication:**
+  - Customer registration and login.
+  - Dedicated customer authentication and profile management.
+  - Guest shopping flow with contextual authentication prompts.
+
+- **Menu & Category Browsing:**
+  - Browse available menu items and categories.
+  - View individual menu item details.
+  - Discover featured menu items and recommendations.
+
+- **Shopping Cart:**
+  - Add and manage items in the cart.
+  - Update quantities and review selected items before checkout.
+
+- **Address & Location Management:**
+  - Manage saved delivery addresses.
+  - Enter and confirm delivery locations using coordinates.
+  - Address search and reverse geocoding using OpenStreetMap Nominatim.
+  - Support for manually entering location coordinates.
+
+- **Checkout & Delivery Pricing:**
+  - Select or enter a delivery address.
+  - Retrieve delivery quotes based on the selected location.
+  - Integrate with backend delivery pricing rules.
+  - Support for the checkout and order placement workflow.
+  
+   - **Payment Integration:**
+    - Online payments through Razorpay.
+    - Cash on Delivery (COD) payment option.
+    - Payment method selection during checkout.
+
+- **Order Management & Tracking:**
+  - Place orders and view order confirmation.
+  - Track order status.
+  - View and manage orders through the customer interface.
+
+- **Admin Authentication & Dashboard:**
+  - Dedicated administrator login and protected dashboard routes.
+  - Dashboard summary and customer management.
+  - Menu item and category management.
+  - Order management and order detail views.
+  - Delivery charge slab management.
+  - Administrative profile and settings.
+
+- **Reusable UI Components:**
+  - Shared buttons, inputs, select fields, modals, and confirmation dialogs.
+  - Consistent loading indicators and order status badges.
+  - Responsive layouts for customer and administrative interfaces.
+
+---
+
+## 4. Tech Stack
+
+### Frontend
+
+- **Framework:** Next.js 16 (App Router)
+- **Library:** React 19
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Server State & Caching:** TanStack Query
+- **HTTP Client:** Axios
+- **Form Handling:** React Hook Form
+- **Validation:** Zod
+- **UI Components:** Radix UI Select
+- **Icons:** Lucide React
+- **Notifications:** Sonner
+- **Utilities:** clsx, tailwind-merge, class-variance-authority
+
+### Backend Integration
+
+- **Framework:** Spring Boot
+- **Database:** MySQL
+- **Communication:** REST APIs over HTTP
+- **Payment Gateway:** Razorpay
+
+The backend is maintained in a separate repository.
+
+---
+
+## 5. Architecture
+
+Bites follows a client-server architecture in which the Next.js frontend communicates with the Spring Boot backend through REST APIs.
+
+```text
+┌─────────────────────────────────────────────┐
+│              Next.js Frontend               │
+│                                             │
+│  Customer Interface     Admin Dashboard     │
+│  Menu | Cart            Orders | Menu       │
+│  Checkout | Tracking    Customers | Settings│
+└──────────────────────┬──────────────────────┘
+                       │
+                 Axios HTTP Client
+                       │
+              TanStack Query
+          (Server State & Caching)
+                       │
+                 REST API Calls
+                       │
+┌──────────────────────▼──────────────────────┐
+│             Spring Boot Backend              │
+│                                             │
+│  Authentication | Menu | Orders             │
+│  Customers | Addresses | Delivery Pricing   │
+└──────────────────────┬──────────────────────┘
+                       │
+┌──────────────────────▼──────────────────────┐
+│                   MySQL                     │
+│          Application Data Storage            │
+└─────────────────────────────────────────────┘
 ```
-src/
-├── app/          # Routes (Next.js App Router)
-├── components/   # Shared UI + layout components
-├── features/     # Feature modules (api/hooks/components per feature)
-├── hooks/        # Reserved for cross-feature hooks (currently empty)
-├── lib/          # Axios instance, TanStack Query setup, generic utils
-├── types/        # Shared TypeScript types mirroring backend DTOs
-├── constants/    # Route paths, order-status labels/transitions
-├── context/      # Cross-cutting React state (cart session, admin auth)
-└── data/         # Static marketing copy (About/testimonials/footer)
+
+### Communication Flow
+
+1. **Page Rendering:** Next.js App Router organizes customer-facing pages and protected administrative routes.
+2. **API Communication:** Axios handles HTTP requests between the frontend and backend.
+3. **Server State:** TanStack Query manages API-driven data fetching, caching, and query updates.
+4. **User Interaction:** React components and context providers manage shared client-side state, including authentication and cart-related state.
+5. **Location Services:** Server-side geocoding routes handle location search and reverse-geocoding requests through OpenStreetMap Nominatim.
+
+---
+
+## 6. Project Structure
+
+```text
+bites-frontend/
+├── public/                         # Static assets
+├── src/
+│   ├── app/
+│   │   ├── (customer)/             # Customer-facing pages
+│   │   │   ├── about/
+│   │   │   ├── cart/
+│   │   │   ├── checkout/
+│   │   │   ├── contact/
+│   │   │   ├── login/
+│   │   │   ├── menu/
+│   │   │   ├── order-success/
+│   │   │   ├── profile/
+│   │   │   ├── register/
+│   │   │   ├── track-order/
+│   │   │   └── page.tsx
+│   │   ├── admin/
+│   │   │   ├── (protected)/        # Protected admin pages
+│   │   │   │   ├── categories/
+│   │   │   │   ├── customers/
+│   │   │   │   ├── dashboard/
+│   │   │   │   ├── delivery-slabs/
+│   │   │   │   ├── menu/
+│   │   │   │   ├── orders/
+│   │   │   │   ├── profile/
+│   │   │   │   └── settings/
+│   │   │   └── login/
+│   │   ├── api/
+│   │   │   └── geocode/            # Geocoding API routes
+│   │   ├── globals.css
+│   │   └── layout.tsx
+│   ├── components/
+│   │   ├── customer/               # Customer-specific components
+│   │   ├── layout/                 # Navbar, footer, admin sidebar
+│   │   └── ui/                     # Reusable UI components
+│   ├── constants/                  # Routes and order statuses
+│   ├── context/                    # Authentication and cart contexts
+│   ├── data/                       # Static site content
+│   ├── features/
+│   │   ├── addresses/              # Address and location management
+│   │   ├── admin/                  # Admin features and management
+│   │   ├── cart/                   # Cart functionality
+│   │   ├── checkout/               # Checkout and delivery pricing
+│   │   ├── customer/               # Customer authentication
+│   │   ├── menu/                   # Menu and category browsing
+│   │   └── orders/                 # Order tracking
+│   ├── hooks/                      # Shared custom hooks
+│   ├── lib/
+│   │   ├── api/                    # Axios configuration
+│   │   ├── geo/                    # Geocoding utilities
+│   │   └── query/                  # Query client and query keys
+│   └── types/                      # Shared TypeScript types
+├── .env.example                    # Environment variable template
+├── next.config.ts                  # Next.js configuration
+├── package.json
+├── tailwind.config.ts
+├── tsconfig.json
+└── README.md
 ```
 
 ---
 
-## Feature-Based Architecture
+## 7. Prerequisites
 
-Business logic lives in `src/features/<name>/`, not scattered across pages. Each feature module is self-contained:
+Before running Bites locally, ensure you have the following installed:
 
-```
-features/menu/
-├── api/          # Raw backend calls (axios)
-├── hooks/        # TanStack Query hooks wrapping the api calls
-└── components/   # UI specific to this feature (if any)
-```
-
-**Why:** pages in `app/` stay thin (just assembling hooks/components), each feature can be understood in isolation, and there's a single obvious place to add new backend calls or query hooks without touching unrelated code.
-
-Feature modules in this project:
-- `menu` — categories, menu items, item detail
-- `cart` — guest cart CRUD
-- `checkout` — order placement (Cart flow + Buy Now flow)
-- `orders` — order tracking for customers
-- `admin/auth` — admin login/profile
-- `admin/dashboard` — summary stats
-- `admin/category-management`, `admin/menu-management`, `admin/delivery-areas`, `admin/orders`, `admin/customers`, `admin/settings` — admin CRUD screens
+- **Node.js:** Compatible with Next.js 16.
+- **npm:** Installed with Node.js.
+- **Git:** For cloning and managing the repository.
+- **Backend Service:** A running Spring Boot backend or an accessible deployed backend API.
 
 ---
 
-## Routing
+## 8. Installation
 
-Built on the Next.js App Router (`src/app/`):
-
-- **`(customer)` route group** — wraps all public customer pages with a shared Navbar/Footer/cart context, without adding a URL segment (e.g. `/menu`, `/cart`, `/checkout`).
-- **`admin/`** — admin routes. `admin/layout.tsx` provides the auth context to *everything* under `/admin`, including the login page.
-- **`admin/(protected)` route group** — everything except login/root. Its own layout redirects to `/admin/login` if there's no valid session, and renders the admin sidebar. This is what makes admin pages "protected" — the guard lives in one place, not duplicated per page.
-- **Dynamic routes** — `menu/[itemId]` (item detail) and `admin/(protected)/orders/[id]` (order detail).
-- Pages that read `useSearchParams()` (checkout, order-success, track-order) wrap the relevant part in `<Suspense>`, as required by the App Router.
-
----
-
-## Folder Details
-
-| Folder | Purpose |
-|---|---|
-| `src/app` | Route definitions, layouts, and pages only — no business logic |
-| `src/components/ui` | Generic, reusable primitives (Button, Input, Badge, Spinner…) |
-| `src/components/layout` | Navbar, Footer, AdminSidebar |
-| `src/features` | Self-contained feature modules — see [Feature-Based Architecture](#feature-based-architecture) |
-| `src/hooks` | Reserved for hooks shared across multiple features (empty for now) |
-| `src/lib/api` | Shared Axios instance with a 401 → refresh → retry interceptor |
-| `src/lib/query` | TanStack Query client/provider + centralized query-key factory |
-| `src/types` | Domain types mirroring backend response shapes |
-| `src/constants` | Route path constants, order status labels/allowed transitions |
-| `src/context` | Cart session (guest id) and admin auth state |
-| `src/data` | Hardcoded static copy only (About text, testimonials, chef bios) — real data always comes from the API |
-
----
-
-## Installation
+### 1. Clone the Repository
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/anshika-pathak005/bites-frontend.git
 cd bites-frontend
+```
+
+### 2. Install Dependencies
+
+```bash
 npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env.local` file in the project root and configure the required environment variables as described in Section 9.
+
+### 4. Start the Development Server
+
+```bash
 npm run dev
 ```
 
-App runs at `http://localhost:3000`. Requires the backend running separately (see [Environment Variables](#environment-variables)).
+Open `http://localhost:3000` in your browser.
 
 ---
 
-## Environment Variables
+## 9. Environment Variables
 
-Copy `.env.example` to `.env.local`:
+Create a `.env.local` file in the root directory of the project.
+
+```env
+# Backend API
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
+
+# Geocoding Configuration
+NOMINATIM_CONTACT=you@yourdomain.com
+NOMINATIM_BASE_URL=https://nominatim.openstreetmap.org
+
+# Frontend Site URL
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+### Variable Description
 
 | Variable | Description |
 |---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | Base URL of the backend API (default: `http://localhost:8080/api`) |
+| `NEXT_PUBLIC_API_BASE_URL` | Base URL of the Spring Boot backend API. |
+| `NOMINATIM_CONTACT` | Contact email or URL identifying the application to Nominatim. |
+| `NOMINATIM_BASE_URL` | Nominatim service URL used for geocoding. |
+| `NEXT_PUBLIC_SITE_URL` | Frontend site URL used as the Referer for geocoding requests. |
+
+**Important:**
+
+- Update `NEXT_PUBLIC_API_BASE_URL` to point to your deployed backend when deploying the frontend.
+- Configure a valid contact value for `NOMINATIM_CONTACT` before deployment.
+- The public Nominatim service has a usage policy and rate limits. Review its policy before using it in a production application.
+- Variables prefixed with `NEXT_PUBLIC_` are exposed to browser-side code. Never store secrets in them.
+- Keep `.env.local` out of version control. Use `.env.example` as the configuration template.
 
 ---
 
-## Available Scripts
+## 10. Running the Application
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Start the development server |
-| `npm run build` | Build for production |
-| `npm run start` | Run the production build |
-| `npm run lint` | Run ESLint |
+### Development Mode
 
----
+```bash
+npm run dev
+```
 
-## Project Workflow
+Starts the Next.js development server with hot reloading.
 
-**Customer flow:**
-Home → browse Menu (filter/search) → Item Detail → add to Cart (or Buy Now) → Checkout → Order Success → Track Order.
+### Production Build
 
-**Admin flow:**
-Login → Dashboard (overview) → manage Orders (accept/progress/cancel) / Menu / Categories / Delivery Areas → view Customers → adjust Settings/Profile.
+```bash
+npm run build
+```
 
----
+Creates an optimized production build.
 
-## API Layer
+### Start Production Server
 
-- One shared Axios instance (`src/lib/api/axios-instance.ts`) for every request — handles the base URL, auth header, and a 401 → refresh-token → retry interceptor.
-- Every backend response is wrapped as `{ success, data, message, error }`; paginated endpoints return `{ items, page, pageSize, totalItems, totalPages }`.
-- Each feature owns its own `api/*.api.ts` file — plain async functions that call the backend and return typed data. No feature imports another feature's API directly.
-- **React Query hooks** (`hooks/use-*.ts`) wrap those API functions: `useQuery` for reads, `useMutation` for writes. Mutations show a toast (success/error) and invalidate the relevant query keys — including cross-boundary keys where needed (e.g. an admin category edit also invalidates the public category list customers see).
-- Query keys are centralized in `src/lib/query/query-keys.ts` so invalidation targets stay consistent across features.
+```bash
+npm run start
+```
 
----
+Starts the application using the generated production build. Run `npm run build` before executing this command.
 
-## State Management
+### Linting
 
-- **TanStack Query** — all server state (menu, cart, orders, admin data). No manual loading/error state juggling; caching and invalidation are handled by query keys.
-- **React Context** — only for small, cross-cutting client state: `cart-context` (guest session id) and `admin-auth-context` (JWT/session, login/logout). Not used for server data.
-- **React Hook Form + Zod** — forms with real validation (login, checkout, admin CRUD forms with schemas). Simple admin forms without complex validation use plain `useState`.
+```bash
+npm run lint
+```
 
-No Redux/Zustand — Query + Context cover everything needed here.
+Runs ESLint to check the codebase for linting issues.
 
 ---
 
-## Folder Naming Conventions
+## 11. Deployment
 
-| Suffix / Pattern | Meaning |
-|---|---|
-| `*.api.ts` | Raw backend calls for a feature (axios functions) |
-| `*.types.ts` | TypeScript types/interfaces for a domain |
-| `use-*.ts` | A React hook (typically a TanStack Query hook) |
-| `page.tsx` | A Next.js route entry point |
-| `layout.tsx` | A Next.js layout wrapping nested routes |
-| `(group-name)` | A Next.js route group — organizes routes without affecting the URL |
-| `[param]` | A Next.js dynamic route segment |
+The frontend can be deployed on a platform that supports Next.js, such as Vercel.
 
----
+### Deployment Steps
 
-## Coding Standards
+1. Push the frontend repository to GitHub.
+2. Import the repository into your chosen deployment platform.
+3. Configure the required environment variables in the deployment settings.
+4. Set `NEXT_PUBLIC_API_BASE_URL` to the deployed Spring Boot backend API URL.
+5. Set `NEXT_PUBLIC_SITE_URL` to the deployed frontend URL.
+6. Configure `NOMINATIM_CONTACT` with a valid contact value.
+7. Deploy the application and verify the customer pages, checkout flow, location services, and administrative routes.
 
-- **Naming:** kebab-case for files/folders, PascalCase for components, camelCase for functions/variables.
-- **Folder organization:** one feature = one folder with `api/`, `hooks/`, `components/`. Pages stay thin and only assemble feature hooks/components.
-- **Reusable components:** generic, domain-agnostic UI goes in `components/ui/`; anything feature-specific stays inside that feature's own `components/` folder.
-- **Money:** always formatted through `formatPrice()` in `src/lib/utils.ts` — never inline currency formatting.
-- **Single Axios instance:** all HTTP calls go through the one shared client — never instantiate a second one.
+The backend must be deployed and accessible separately for API-dependent features to work.
 
 ---
 
-## Future Improvements
+## 12. Author
 
-- Real Cloudinary image upload UI for admin forms (currently accepts an image URL as plain text)
-- Backend endpoint for the Contact form (currently UI-only)
-- Freeze cart item price at add-to-cart time instead of using the live menu price at checkout
-- Replace remaining Unsplash placeholder images with real assets
+**Anshika Pathak**
 
----
-
-## Screenshots
-
-_Add screenshots here: Home, Menu, Cart, Checkout, Order Tracking, Admin Dashboard, Mobile view._
-
----
-
-## Author
-
-- **Name:**
-- **GitHub:**
-- **LinkedIn:**
-- **Portfolio:**
+- **GitHub:** [@anshika-pathak005](https://github.com/anshika-pathak005)
