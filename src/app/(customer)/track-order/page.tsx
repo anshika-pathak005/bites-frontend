@@ -45,7 +45,11 @@ import { OrderStatusBadge } from "@/components/ui/order-status-badge";
 import { ORDER_STATUS_LABELS } from "@/constants/order-status";
 import type { Order, OrderStatus } from "@/types/order.types";
 
-const PROGRESS_STEPS: { status: OrderStatus; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const PROGRESS_STEPS: {
+  status: OrderStatus;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
   { status: "PENDING", label: "Placed", icon: Clock },
   { status: "ACCEPTED", label: "Accepted", icon: Check },
   { status: "PREPARING", label: "Preparing", icon: Flame },
@@ -144,12 +148,16 @@ function TrackOrderContent() {
   const searchParams = useSearchParams();
   const urlOrderNumber = searchParams.get("orderNumber");
 
-  const [searchOrderNumber, setSearchOrderNumber] = useState(urlOrderNumber || "");
+  const [searchOrderNumber, setSearchOrderNumber] = useState(
+    urlOrderNumber || "",
+  );
   const [trackedOrder, setTrackedOrder] = useState<Order | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
   const [activeTab, setActiveTab] = useState<"orders" | "search">("orders");
-  const [reorderingId, setReorderingId] = useState<string | number | null>(null);
+  const [reorderingId, setReorderingId] = useState<string | number | null>(
+    null,
+  );
 
   const myOrdersQuery = useMyOrders();
   const trackOrderMutation = useTrackOrderMutation();
@@ -158,6 +166,7 @@ function TrackOrderContent() {
 
   const myOrders = myOrdersQuery.data || [];
   const hasMyOrders = myOrders.length > 0;
+  const isOrdersLoading = myOrdersQuery.isLoading; // 
 
   // Auto-switch to search tab if navigated via direct order link
   useEffect(() => {
@@ -168,10 +177,11 @@ function TrackOrderContent() {
 
   // If guest has no session orders, enforce the search tab
   useEffect(() => {
+    if (isOrdersLoading) return; // : wait until orders finish loading
     if (!isAuthenticated && !hasMyOrders) {
       setActiveTab("search");
     }
-  }, [isAuthenticated, hasMyOrders]);
+  }, [isAuthenticated, hasMyOrders, isOrdersLoading]); //  isOrdersLoading added
 
   useEffect(() => {
     if (urlOrderNumber) {
@@ -179,6 +189,11 @@ function TrackOrderContent() {
       trackOrderMutation.mutate(urlOrderNumber, {
         onSuccess: (res) => {
           setTrackedOrder(res);
+          setHasSearched(true);
+        },
+        onError: () => {
+          // 
+          setTrackedOrder(null);
           setHasSearched(true);
         },
       });
@@ -207,7 +222,9 @@ function TrackOrderContent() {
       onSuccess: () => {
         setCancellingOrder(null);
         if (trackedOrder?.id === cancellingOrder.id) {
-          setTrackedOrder((prev) => (prev ? { ...prev, status: "CANCELLED", cancellable: false } : null));
+          setTrackedOrder((prev) =>
+            prev ? { ...prev, status: "CANCELLED", cancellable: false } : null,
+          );
         }
       },
     });
@@ -223,7 +240,10 @@ function TrackOrderContent() {
     setReorderingId(order.id);
     try {
       for (const item of order.items) {
-        await addItem.mutateAsync({ menuItemId: String(item.menuItemId), quantity: item.quantity });
+        await addItem.mutateAsync({
+          menuItemId: String(item.menuItemId),
+          quantity: item.quantity,
+        });
       }
       toast.success("Order items added to your cart");
       router.push(ROUTES.cart);
@@ -248,6 +268,14 @@ function TrackOrderContent() {
         </p>
       </div>
 
+      {/* Orders Loading State  */}
+      {isOrdersLoading && (isAuthenticated || activeTab === "orders") && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <Spinner className="w-8 h-8" />
+          <p className="text-sm text-secondary">Loading your orders...</p>
+        </div>
+      )}
+
       {/* Guest Tab Switcher (Only shown if guest has session orders) */}
       {!isAuthenticated && hasMyOrders && (
         <div className="flex justify-center mb-2">
@@ -259,7 +287,7 @@ function TrackOrderContent() {
                 "px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer select-none",
                 activeTab === "orders"
                   ? "bg-primary text-black shadow-md shadow-primary/10"
-                  : "text-secondary hover:text-on-surface hover:bg-surface-container-high"
+                  : "text-secondary hover:text-on-surface hover:bg-surface-container-high",
               )}
             >
               All Your Orders
@@ -271,7 +299,7 @@ function TrackOrderContent() {
                 "px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer select-none",
                 activeTab === "search"
                   ? "bg-primary text-black shadow-md shadow-primary/10"
-                  : "text-secondary hover:text-on-surface hover:bg-surface-container-high"
+                  : "text-secondary hover:text-on-surface hover:bg-surface-container-high",
               )}
             >
               Track by Order ID
@@ -290,7 +318,10 @@ function TrackOrderContent() {
               </p>
             </div>
           )}
-          <form onSubmit={handleSearchSubmit} className="flex gap-2.5 sm:gap-3 max-w-xl mx-auto">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="flex gap-2.5 sm:gap-3 max-w-xl mx-auto"
+          >
             <div className="relative flex-grow">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
               <Input
@@ -306,46 +337,60 @@ function TrackOrderContent() {
               className="text-black font-bold px-6 sm:px-8 rounded-xl glow-hover cursor-pointer"
               disabled={trackOrderMutation.isPending}
             >
-              {trackOrderMutation.isPending ? <Spinner className="w-4 h-4 text-black" /> : "Track"}
+              {trackOrderMutation.isPending ? (
+                <Spinner className="w-4 h-4 text-black" />
+              ) : (
+                "Track"
+              )}
             </Button>
           </form>
         </div>
       )}
 
-      {/* Single Search Result View */}
-      {!isAuthenticated && activeTab === "search" && hasSearched && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-secondary">
-              Search Result
-            </h3>
-            <button
-              onClick={() => {
-                setHasSearched(false);
-                setTrackedOrder(null);
-              }}
-              className="text-xs text-secondary hover:text-primary transition-colors cursor-pointer"
-            >
-              Clear Search
-            </button>
-          </div>
-
-          {trackedOrder ? (
-            <OrderTrackingCard
-              order={trackedOrder}
-              defaultExpanded={false}
-              onCancelClick={(order) => setCancellingOrder(order)}
-            />
-          ) : (
-            <div className="flex flex-col items-center gap-3 py-10 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-6 shadow-sm">
-              <Package className="w-8 h-8 text-on-surface-variant/50" />
-              <p className="text-secondary text-sm font-medium">
-                No order found matching Order ID &ldquo;{searchOrderNumber}&rdquo;.
-              </p>
+      {/* Single Search Result View ( updated: shows loading state while searching) */}
+      {!isAuthenticated &&
+        activeTab === "search" &&
+        (hasSearched || trackOrderMutation.isPending) && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-secondary">
+                Search Result
+              </h3>
+              {!trackOrderMutation.isPending && (
+                <button
+                  onClick={() => {
+                    setHasSearched(false);
+                    setTrackedOrder(null);
+                  }}
+                  className="text-xs text-secondary hover:text-primary transition-colors cursor-pointer"
+                >
+                  Clear Search
+                </button>
+              )}
             </div>
-          )}
-        </div>
-      )}
+
+            {trackOrderMutation.isPending ? (
+              <div className="flex flex-col items-center gap-3 py-12">
+                <Spinner className="w-8 h-8" />
+                <p className="text-sm text-secondary">Finding your order...</p>
+              </div>
+            ) : trackedOrder ? (
+              <OrderTrackingCard
+                order={trackedOrder}
+                defaultExpanded={false}
+                onCancelClick={(order) => setCancellingOrder(order)}
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-3 py-10 text-center bg-surface-container-lowest border border-outline-variant/30 rounded-2xl p-6 shadow-sm">
+                <Package className="w-8 h-8 text-on-surface-variant/50" />
+                <p className="text-secondary text-sm font-medium">
+                  No order found matching Order ID &ldquo;{searchOrderNumber}
+                  &rdquo;.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
       {/* Guest: Accordion Order List under orders tab */}
       {!isAuthenticated && activeTab === "orders" && hasMyOrders && (
@@ -377,8 +422,9 @@ function TrackOrderContent() {
       )}
 
       {/* Logged-In Users: Accordion Order List (Always show all, no switcher/search) */}
-      {isAuthenticated && (
-        hasMyOrders ? (
+      {isAuthenticated &&
+        !isOrdersLoading && //  !isOrdersLoading added
+        (hasMyOrders ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
               <h2 className="text-base sm:text-lg font-bold text-on-surface">
@@ -416,12 +462,12 @@ function TrackOrderContent() {
                 No Orders Placed Yet
               </h3>
               <p className="text-secondary text-xs sm:text-sm mt-1 max-w-sm">
-                Browse our delicious menu and place your first midnight gourmet order!
+                Browse our delicious menu and place your first midnight gourmet
+                order!
               </p>
             </div>
           </div>
-        )
-      )}
+        ))}
 
       {/* Guest Sign-In Conversion Card (Only for Guests) */}
       {!isAuthenticated && <GuestTrackOrderBanner />}
@@ -461,7 +507,9 @@ function GuestTrackOrderBanner() {
           Never Lose Track of Your Midnight Orders
         </h3>
         <p className="text-xs sm:text-sm text-secondary max-w-md mx-auto leading-relaxed">
-          Sign in to automatically save all your active orders, track live deliveries in 1-click without typing Order IDs, and auto-fill saved addresses across devices.
+          Sign in to automatically save all your active orders, track live
+          deliveries in 1-click without typing Order IDs, and auto-fill saved
+          addresses across devices.
         </p>
       </div>
 
@@ -484,12 +532,18 @@ function GuestTrackOrderBanner() {
       {/* Action Buttons */}
       <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
         <Link href={ROUTES.login} className="w-full sm:w-auto">
-          <Button size="md" className="w-full sm:w-auto text-black font-bold px-7 py-3 rounded-xl glow-hover flex items-center justify-center gap-2 shadow-md shadow-primary/20 cursor-pointer">
+          <Button
+            size="md"
+            className="w-full sm:w-auto text-black font-bold px-7 py-3 rounded-xl glow-hover flex items-center justify-center gap-2 shadow-md shadow-primary/20 cursor-pointer"
+          >
             <span>Sign In to Track Automatically</span>
             <ArrowRight className="w-4 h-4 text-black" />
           </Button>
         </Link>
-        <Link href={ROUTES.register} className="text-xs text-secondary hover:text-primary font-semibold transition-colors py-2 px-3">
+        <Link
+          href={ROUTES.register}
+          className="text-xs text-secondary hover:text-primary font-semibold transition-colors py-2 px-3"
+        >
           Create an Account
         </Link>
       </div>
@@ -556,7 +610,9 @@ function OrderTrackingCard({
             window.location.reload();
           }
         } catch (err: any) {
-          setRetryError(err instanceof Error ? err.message : "Payment verification failed.");
+          setRetryError(
+            err instanceof Error ? err.message : "Payment verification failed.",
+          );
         }
       },
       prefill: {
@@ -580,18 +636,41 @@ function OrderTrackingCard({
   const currentStepIndex = stepStatuses.indexOf(order.status);
 
   // Field fallbacks to support both backend DTO schemas smoothly
-  const grandTotal = order.grandTotal ?? (order as unknown as { total?: number }).total ?? 0;
+  const grandTotal =
+    order.grandTotal ?? (order as unknown as { total?: number }).total ?? 0;
   const subtotal = order.subtotal ?? 0;
-  const deliveryCharge = order.deliveryCharge ?? (order as unknown as { deliveryFee?: number }).deliveryFee ?? 0;
-  const deliveryAddress = order.deliveryAddress || (order as unknown as { address?: { street?: string } }).address?.street || "";
-  const pincode = order.pincode || (order as unknown as { address?: { pincode?: string } }).address?.pincode || "";
-  const landmark = order.landmark || (order as unknown as { address?: { landmark?: string } }).address?.landmark || "";
-  const phone = order.customerPhone || (order as unknown as { address?: { phone?: string } }).address?.phone || "";
+  const deliveryCharge =
+    order.deliveryCharge ??
+    (order as unknown as { deliveryFee?: number }).deliveryFee ??
+    0;
+  const deliveryAddress =
+    order.deliveryAddress ||
+    (order as unknown as { address?: { street?: string } }).address?.street ||
+    "";
+  const pincode =
+    order.pincode ||
+    (order as unknown as { address?: { pincode?: string } }).address?.pincode ||
+    "";
+  const landmark =
+    order.landmark ||
+    (order as unknown as { address?: { landmark?: string } }).address
+      ?.landmark ||
+    "";
+  const phone =
+    order.customerPhone ||
+    (order as unknown as { address?: { phone?: string } }).address?.phone ||
+    "";
 
   // Summary items list text (e.g. "2x Truffle Pasta, 1x Gelato")
-  const itemsSummary = order.items && order.items.length > 0
-    ? order.items.map((i) => `${i.quantity}x ${i.itemName || (i as unknown as { name?: string }).name || "Item"}`).join(", ")
-    : "Items";
+  const itemsSummary =
+    order.items && order.items.length > 0
+      ? order.items
+          .map(
+            (i) =>
+              `${i.quantity}x ${i.itemName || (i as unknown as { name?: string }).name || "Item"}`,
+          )
+          .join(", ")
+      : "Items";
 
   return (
     <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-2xl shadow-sm overflow-hidden transition-all duration-200 hover:border-primary-container/40">
@@ -616,7 +695,11 @@ function OrderTrackingCard({
                 className="p-1 rounded hover:bg-surface-container text-secondary hover:text-primary transition-colors cursor-pointer shrink-0"
                 title="Copy Order ID"
               >
-                {copied ? <Check className="w-3 h-3.5 text-green-600 inline" /> : <Copy className="w-3 h-3.5 inline" />}
+                {copied ? (
+                  <Check className="w-3 h-3.5 text-green-600 inline" />
+                ) : (
+                  <Copy className="w-3 h-3.5 inline" />
+                )}
               </button>
               {order.placedAt && (
                 <span className="flex items-center gap-1 text-[11px] text-secondary/80 shrink-0">
@@ -635,11 +718,17 @@ function OrderTrackingCard({
               <OrderStatusBadge status={order.status} />
               <PaymentStatusBadge status={order.paymentStatus} />
             </div>
-            <p className="text-sm sm:text-base font-bold text-primary">{formatPrice(grandTotal)}</p>
+            <p className="text-sm sm:text-base font-bold text-primary">
+              {formatPrice(grandTotal)}
+            </p>
           </div>
 
           <div className="w-8 h-8 rounded-full bg-surface-container border border-outline-variant/30 flex items-center justify-center text-secondary hover:text-primary transition-colors shrink-0">
-            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {isExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
           </div>
         </div>
       </div>
@@ -658,7 +747,11 @@ function OrderTrackingCard({
             }}
             className="rounded-xl text-xs font-semibold px-4 py-2 cursor-pointer gap-1.5"
           >
-            {isReordering ? <Spinner className="w-3.5 h-3.5" /> : <RotateCcw className="w-3.5 h-3.5" />}
+            {isReordering ? (
+              <Spinner className="w-3.5 h-3.5" />
+            ) : (
+              <RotateCcw className="w-3.5 h-3.5" />
+            )}
             <span>Reorder</span>
           </Button>
         </div>
@@ -674,7 +767,9 @@ function OrderTrackingCard({
               <div>
                 <span>This order was cancelled.</span>
                 {order.cancelReason && (
-                  <p className="font-normal text-secondary text-xs mt-0.5">Reason: {order.cancelReason}</p>
+                  <p className="font-normal text-secondary text-xs mt-0.5">
+                    Reason: {order.cancelReason}
+                  </p>
                 )}
               </div>
             </div>
@@ -687,12 +782,15 @@ function OrderTrackingCard({
                   const isCurrent = index === currentStepIndex;
 
                   return (
-                    <div key={step.status} className="flex-1 flex flex-col items-center relative min-w-[60px]">
+                    <div
+                      key={step.status}
+                      className="flex-1 flex flex-col items-center relative min-w-[60px]"
+                    >
                       {index > 0 && (
                         <div
                           className={cn(
                             "absolute top-3 sm:top-3.5 right-1/2 w-full h-0.5 transition-colors",
-                            isDone ? "bg-primary" : "bg-outline-variant/60"
+                            isDone ? "bg-primary" : "bg-outline-variant/60",
                           )}
                         />
                       )}
@@ -702,7 +800,8 @@ function OrderTrackingCard({
                           isDone
                             ? "bg-primary border-primary text-black"
                             : "bg-surface-container-lowest border-outline-variant text-secondary/60",
-                          isCurrent && "ring-4 ring-primary/20 scale-110 shadow-sm"
+                          isCurrent &&
+                            "ring-4 ring-primary/20 scale-110 shadow-sm",
                         )}
                       >
                         <StepIcon className="w-3.5 h-3.5" />
@@ -710,7 +809,7 @@ function OrderTrackingCard({
                       <span
                         className={cn(
                           "text-[10px] sm:text-[11px] text-center mt-1.5 font-medium leading-tight",
-                          isDone ? "text-primary font-bold" : "text-secondary"
+                          isDone ? "text-primary font-bold" : "text-secondary",
                         )}
                       >
                         {step.label}
@@ -732,19 +831,33 @@ function OrderTrackingCard({
               </h4>
               <div className="space-y-2 bg-surface-container/40 p-3.5 rounded-2xl border border-outline-variant/20">
                 {order.items?.map((item, i) => {
-                  const itemName = item.itemName || (item as unknown as { name?: string }).name || "Item";
-                  const itemUnitPrice = item.itemPrice ?? (item as unknown as { price?: number }).price ?? 0;
-                  const itemSubtotal = item.subtotal ?? (itemUnitPrice * item.quantity);
+                  const itemName =
+                    item.itemName ||
+                    (item as unknown as { name?: string }).name ||
+                    "Item";
+                  const itemUnitPrice =
+                    item.itemPrice ??
+                    (item as unknown as { price?: number }).price ??
+                    0;
+                  const itemSubtotal =
+                    item.subtotal ?? itemUnitPrice * item.quantity;
 
                   return (
-                    <div key={item.id || i} className="flex items-center justify-between text-xs sm:text-sm">
+                    <div
+                      key={item.id || i}
+                      className="flex items-center justify-between text-xs sm:text-sm"
+                    >
                       <div className="flex items-center gap-2">
                         <span className="w-5 h-5 rounded-md bg-surface-container border border-outline-variant/30 flex items-center justify-center text-[11px] font-bold text-primary">
                           {item.quantity}
                         </span>
-                        <span className="font-semibold text-on-surface">{itemName}</span>
+                        <span className="font-semibold text-on-surface">
+                          {itemName}
+                        </span>
                       </div>
-                      <span className="font-bold text-on-surface">{formatPrice(itemSubtotal)}</span>
+                      <span className="font-bold text-on-surface">
+                        {formatPrice(itemSubtotal)}
+                      </span>
                     </div>
                   );
                 })}
@@ -760,13 +873,22 @@ function OrderTrackingCard({
                   Delivery Location
                 </h4>
                 {deliveryAddress ? (
-                  <p className="text-xs font-semibold text-on-surface">{deliveryAddress}</p>
+                  <p className="text-xs font-semibold text-on-surface">
+                    {deliveryAddress}
+                  </p>
                 ) : (
-                  <p className="text-xs text-secondary italic">Address provided at order placement</p>
+                  <p className="text-xs text-secondary italic">
+                    Address provided at order placement
+                  </p>
                 )}
                 {(landmark || pincode) && (
                   <p className="text-xs text-secondary">
-                    {[landmark && `Landmark: ${landmark}`, pincode && `PIN: ${pincode}`].filter(Boolean).join(" • ")}
+                    {[
+                      landmark && `Landmark: ${landmark}`,
+                      pincode && `PIN: ${pincode}`,
+                    ]
+                      .filter(Boolean)
+                      .join(" • ")}
                   </p>
                 )}
                 {phone && (
@@ -789,11 +911,15 @@ function OrderTrackingCard({
                 </div>
                 <div className="flex justify-between text-secondary">
                   <span>Delivery Fee</span>
-                  <span>{deliveryCharge > 0 ? formatPrice(deliveryCharge) : "FREE"}</span>
+                  <span>
+                    {deliveryCharge > 0 ? formatPrice(deliveryCharge) : "FREE"}
+                  </span>
                 </div>
                 <div className="flex justify-between font-bold text-sm text-on-surface pt-1.5 border-t border-outline-variant/20">
                   <span>Total Amount</span>
-                  <span className="text-primary">{formatPrice(grandTotal)}</span>
+                  <span className="text-primary">
+                    {formatPrice(grandTotal)}
+                  </span>
                 </div>
 
                 {/* Online Payment Pending Retry CTA */}
@@ -802,7 +928,9 @@ function OrderTrackingCard({
                   !isCancelled && (
                     <div className="pt-3 border-t border-outline-variant/20 space-y-2">
                       {retryError && (
-                        <p className="text-[11px] text-error font-medium">{retryError}</p>
+                        <p className="text-[11px] text-error font-medium">
+                          {retryError}
+                        </p>
                       )}
                       <Button
                         type="button"
