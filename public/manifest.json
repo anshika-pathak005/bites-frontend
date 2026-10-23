@@ -16,19 +16,19 @@
     ],
     "icons": [
         {
-            "src": "/image/bites_app_logo.png",
+            "src": "/images/bites_app_logo.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/image/bites_app_logo.png",
+            "src": "/images/bites_app_logo.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/image/bites_app_logo.png",
+            "src": "/images/bites_app_logo.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
